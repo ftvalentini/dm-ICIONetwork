@@ -22,7 +22,7 @@ csv_file = "data/raw/" %+% unzip(zip_file, list=T)$Name
 mat_raw = read.delim(csv_file, header=T, sep=",", row.names=1) %>% as.matrix()
 
 # save matrix as rds
-saveRDS(mat, "data/working/matrix_raw.rds")
+saveRDS(mat_raw, "data/working/matrix_raw.rds")
 
 
 
