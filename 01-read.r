@@ -10,6 +10,7 @@ dir.create("data/raw/", showWarnings=F)
 # ONLY ONCE: DOWNLOAD ICIO2018_2015.zip in data/raw/ from:
 # http://stats.oecd.org/wbos/fileview2.aspx?IDFile=9f579ef3-4685-45e4-a0ba-d1acbd9755a6
 # (using download.file() failed)
+# Read Me: http://stats.oecd.org/wbos/fileview2.aspx?IDFile=c0787cf5-ec31-4130-8ddf-8667773e66ed
 
 # input file
 zip_file = "data/raw/ICIO2018_2015.zip"
