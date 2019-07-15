@@ -1,0 +1,70 @@
+id,name,region
+AUS,Australia,Oceania
+AUT,Austria,Western Europe
+BEL,Belgium,Western Europe
+CAN,Canada,NAFTA
+CHL,Chile,Central & South America
+CZE,Czech Republic,Eastern Europe
+DNK,Denmark,Western Europe
+EST,Estonia,Eastern Europe
+FIN,Finland,Eastern Europe
+FRA,France,Western Europe
+DEU,Germany,Western Europe
+GRC,Greece,Eastern Europe
+HUN,Hungary,Eastern Europe
+ISL,Iceland,Western Europe
+IRL,Ireland,Western Europe
+ISR,Israel,Middle East
+ITA,Italy,Western Europe
+JPN,Japan,East Asia
+KOR,Korea,East Asia
+LVA,Latvia,Eastern Europe
+LTU,Lithuania,Eastern Europe
+LUX,Luxembourg,Western Europe
+MEX,Mexico,NAFTA
+NLD,Netherlands,Western Europe
+NZL,New Zealand,Oceania
+NOR,Norway,Western Europe
+POL,Poland,Eastern Europe
+PRT,Portugal,Western Europe
+SVK,Slovak Republic,Eastern Europe
+SVN,Slovenia,Eastern Europe
+ESP,Spain,Western Europe
+SWE,Sweden,Western Europe
+CHE,Switzerland,Western Europe
+TUR,Turkey,Middle East
+GBR,United Kingdom,Western Europe
+USA,United States,NAFTA
+MX1,Mexico - Activities excluding Global Manufacturing,NAFTA
+MX2,Mexico - Global Manufacturing activities,NAFTA
+ARG,Argentina,Central & South America
+BRA,Brazil,Central & South America
+BRN,Brunei Darussalam,South & Southeast Asia
+BGR,Bulgaria,Eastern Europe
+KHM,Cambodia,South & Southeast Asia
+CHN,China (People's Republic of),East Asia
+COL,Colombia,Central & South America
+CRI,Costa Rica,Central & South America
+HRV,Croatia,Eastern Europe
+CYP,Cyprus,Eastern Europe
+IND,India,South & Southeast Asia
+IDN,Indonesia,South & Southeast Asia
+HKG,"Hong Kong, China",East Asia
+KAZ,Kazakhstan,Central & North Asia
+MYS,Malaysia,South & Southeast Asia
+MLT,Malta,Eastern Europe
+MAR,Morocco,Africa
+PER,Peru,Central & South America
+PHL,Philippines,South & Southeast Asia
+ROU,Romania,Eastern Europe
+RUS,Russian Federation,Central & North Asia
+SAU,Saudi Arabia,Middle East
+SGP,Singapore,South & Southeast Asia
+ZAF,South Africa,Africa
+TWN,Chinese Taipei,East Asia
+THA,Thailand,South & Southeast Asia
+TUN,Tunisia,Africa
+VNM,Viet Nam,South & Southeast Asia
+ROW,Rest of the World,Rest of World
+CN1,China - Activities excluding export processing ,East Asia
+CN2,China - Export processing activities,East Asia
