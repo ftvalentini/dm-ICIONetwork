@@ -50,7 +50,11 @@ aux_mat = c(ones, rep(0,ncol(mat))) %>% rep(n_countries-1) %>% c(ones) %>%
 va_mat = aux_mat %*% diag(c(va))
 mat = rbind(mat, va_mat)
 
-# 6. 0 if byrow and bycol < 0.1 (o sea 0.1%)
+# 6. set loops = 0 (compraventas del mismo sector)
+mat = mat[sort(rownames(mat)),sort(colnames(mat))]
+diag(mat) = 0
+
+# 7. 0 if byrow and bycol < 0.1 (o sea 0.1%)
 lim_perc = 0.1
 # % of each cell by row (no entiendo por qué traspone)
 mat_byrow = mat %>% apply(1, function(x) x/sum(x)*100) %>% t()
@@ -62,16 +66,13 @@ mat_byrow[is.na(mat_byrow)] = 0
 mat_bycol[is.na(mat_bycol)] = 0
 mat[c(mat_bycol)<lim_perc & c(mat_byrow)<lim_perc] = 0
 
-# 7. 0 if value<1 (o sea 1 mill USD)
+# 8. 0 if value<1 (o sea 1 mill USD)
 lim_value = 1
 mat[c(mat)<lim_value] = 0
 
-# 8. set loops = 0 (compraventas del mismo sector)
-diag(mat) = 0
-
 # 9. weighted version 1 (weights equal to XM index)
 # (XM = (%row + %col)/2)
-mat_w1 = (mat_bycol + mat_byrow)/2
+mat_w1 = ((mat_bycol + mat_byrow)/2) / 100
 
 # 10. weighted version 2 (weights equal to log(dollars))
 mat_w2 = mat
@@ -104,7 +105,6 @@ adj_list = data.table::melt(mats[[mat_to_use]]) %>%
 library(igraph)
 g = graph_from_data_frame(adj_list, directed=T, vertices=vertices)
 # g = graph_from_data_frame(adj_list, directed=T)
-
 
 
 # communities -------------------------------------------------------------
