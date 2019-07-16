@@ -50,11 +50,7 @@ aux_mat = c(ones, rep(0,ncol(mat))) %>% rep(n_countries-1) %>% c(ones) %>%
 va_mat = aux_mat %*% diag(c(va))
 mat = rbind(mat, va_mat)
 
-# 6. set loops = 0 (compraventas del mismo sector)
-mat = mat[sort(rownames(mat)),sort(colnames(mat))]
-diag(mat) = 0
-
-# 7. 0 if byrow and bycol < 0.1 (o sea 0.1%)
+# 6. 0 if byrow and bycol < 0.1 (o sea 0.1%)
 lim_perc = 0.1
 # % of each cell by row (no entiendo por qué traspone)
 mat_byrow = mat %>% apply(1, function(x) x/sum(x)*100) %>% t()
@@ -66,13 +62,16 @@ mat_byrow[is.na(mat_byrow)] = 0
 mat_bycol[is.na(mat_bycol)] = 0
 mat[c(mat_bycol)<lim_perc & c(mat_byrow)<lim_perc] = 0
 
-# 8. 0 if value<1 (o sea 1 mill USD)
+# 7. 0 if value<1 (o sea 1 mill USD)
 lim_value = 1
 mat[c(mat)<lim_value] = 0
 
+# 8. set loops = 0 (compraventas del mismo sector)
+diag(mat) = 0
+
 # 9. weighted version 1 (weights equal to XM index)
 # (XM = (%row + %col)/2)
-mat_w1 = ((mat_bycol + mat_byrow)/2) / 100
+mat_w1 = (mat_bycol + mat_byrow)/2
 
 # 10. weighted version 2 (weights equal to log(dollars))
 mat_w2 = mat
@@ -116,113 +115,77 @@ gs <- map(mats, mat_to_graph )
 
 
 detCom <- function(g){ 
-  
-  c_im = cluster_infomap(g, modularity=F)
-  c_lp = cluster_label_prop(g)
-  
-  # keep communities with more than 1 node
-  grupos_im = igraph::groups(c_im) %>% "["(map_lgl(., function(x) length(x)>1))
-  grupos_lp = igraph::groups(c_lp) %>% "["(map_lgl(., function(x) length(x)>1))
-  
-  # keep communities with more than 1 country
-  gruposf_im = grupos_im %>%
-    "["(map_lgl(., function(x) length(unique(str_extract(x,"(.+)_"))) > 1))
-  gruposf_lp = grupos_lp %>%
-    "["(map_lgl(., function(x) length(unique(str_extract(x,"(.+)_"))) > 1))
-  
-  out <- list(gruposf_im = gruposf_im,
-              gruposf_lp = gruposf_lp)
+
+c_im = cluster_infomap(g, modularity=F)
+c_lp = cluster_label_prop(g)
+
+# keep communities with more than 1 node
+grupos_im = igraph::groups(c_im) %>% "["(map_lgl(., function(x) length(x)>1))
+grupos_lp = igraph::groups(c_lp) %>% "["(map_lgl(., function(x) length(x)>1))
+
+# keep communities with more than 1 country
+gruposf_im = grupos_im %>%
+  "["(map_lgl(., function(x) length(unique(str_extract(x,"(.+)_"))) > 1))
+gruposf_lp = grupos_lp %>%
+  "["(map_lgl(., function(x) length(unique(str_extract(x,"(.+)_"))) > 1))
+
+out <- list(gruposf_im = gruposf_im,
+            gruposf_lp = gruposf_lp)
 }
 
 gs_com <- map(gs, detCom)
+# graph -------------------------------------------------------------------
 
-# commnuity diagnostics
+mat_to_use = "mat_w2"
+# adjacency list and vertices list
+vertices = dimnames(mats[[mat_to_use]]) %>% unlist() %>% unique()
+adj_list = data.table::melt(mats[[mat_to_use]]) %>% 
+  setNames(c("from","to","weight")) %>% 
+  dplyr::filter(weight>0) 
+# (drop weight if using UW?)
 
-diagnostics1 <- function(gc){
-  q_com <- map_depth(gc,1,length)
-  num_country <- map_depth(gc, 2, .f = ~length(unique(str_sub(.,1,3))))
-  avg_country <- map_depth(num_country,1,~ mean(unlist(.)))
-  #return(q_com)
-  return(unlist(avg_country))
-  
-  
-}
-
-diagnostics2 <- function(gc){
-  q_com <- map_depth(gc,1,length)
-   return(unlist(q_com))
-  
-  
-}
-
-d1 <- map(gs_com, diagnostics1)
-d2 <- map(gs_com, diagnostics2)
-
-full_diagnostics <- function(diag1, diag2){
-  d1 <- bind_rows(diag1)
-  d2 <- bind_rows(diag2)
-  df <- rbind.data.frame(d1,d2)
-  df2 <- df %>% mutate(var = c("Avg_Country_im",
-                               "Avg_Country_lp",
-                               "N_communities_im",
-                               "N_communities_lp"))
-  
-}
-
-algorithm_diagnostics <- full_diagnostics(d1,d2)
+# create graph
+library(igraph)
+g = graph_from_data_frame(adj_list, directed=T, vertices=vertices)
+# g = graph_from_data_frame(adj_list, directed=T)
 
 
-# # graph -------------------------------------------------------------------
-# 
-# mat_to_use = "mat_w2"
-# # adjacency list and vertices list
-# vertices = dimnames(mats[[mat_to_use]]) %>% unlist() %>% unique()
-# adj_list = data.table::melt(mats[[mat_to_use]]) %>% 
-#   setNames(c("from","to","weight")) %>% 
-#   dplyr::filter(weight>0) 
-# # (drop weight if using UW?)
-# 
-# # create graph
-# library(igraph)
-# g = graph_from_data_frame(adj_list, directed=T, vertices=vertices)
-# # g = graph_from_data_frame(adj_list, directed=T)
-# 
-# 
-# # communities -------------------------------------------------------------
-# 
-# c_im = cluster_infomap(g, modularity=F)
-# c_lp = cluster_label_prop(g)
-# 
-# # keep communities with more than 1 node
-# grupos_im = igraph::groups(c_im) %>% "["(map_lgl(., function(x) length(x)>1))
-# grupos_lp = igraph::groups(c_lp) %>% "["(map_lgl(., function(x) length(x)>1))
-# 
-# # keep communities with more than 1 country
-# gruposf_im = grupos_im %>%
-#   "["(map_lgl(., function(x) length(unique(str_extract(x,"(.+)_"))) > 1))
-# gruposf_lp = grupos_lp %>%
-#   "["(map_lgl(., function(x) length(unique(str_extract(x,"(.+)_"))) > 1))
-# 
-# 
-# 
-# # plot --------------------------------------------------------------------
-# 
-# png("output/plots/prueba3.png", width=1600, height=1200)
-# lay = layout_with_kk(g)
-# plot(g, layout=lay, edge.color="white",
-#      vertex.size=1,
-#      vertex.label="",
-#      vertex.color="black")
-# dev.off()
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
+
+# communities -------------------------------------------------------------
+
+c_im = cluster_infomap(g, modularity=F)
+c_lp = cluster_label_prop(g)
+
+# keep communities with more than 1 node
+grupos_im = igraph::groups(c_im) %>% "["(map_lgl(., function(x) length(x)>1))
+grupos_lp = igraph::groups(c_lp) %>% "["(map_lgl(., function(x) length(x)>1))
+
+# keep communities with more than 1 country
+gruposf_im = grupos_im %>%
+  "["(map_lgl(., function(x) length(unique(str_extract(x,"(.+)_"))) > 1))
+gruposf_lp = grupos_lp %>%
+  "["(map_lgl(., function(x) length(unique(str_extract(x,"(.+)_"))) > 1))
+
+
+
+# plot --------------------------------------------------------------------
+
+png("output/plots/prueba3.png", width=1600, height=1200)
+lay = layout_with_kk(g)
+plot(g, layout=lay, edge.color="white",
+     vertex.size=1,
+     vertex.label="",
+     vertex.color="black")
+dev.off()
+
+
+
+
+
+
+
+
+
 
 
 
