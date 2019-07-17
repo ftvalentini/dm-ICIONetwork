@@ -1,0 +1,64 @@
+---
+title: "Identificación de Cadenas Globales de Valor"
+subtitle: "Aprendizaje Automático en Grafos\n\nMaestría en Explotación de Datos (UBA)"
+author:
+- "Franco Betteo"
+- "Francisco Valentini"
+date: "Julio de 2019"
+lang: es
+fontsize: 12pt 
+output:
+  bookdown::pdf_document2:
+    fig_caption: yes
+    toc: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=F, warning=F, message=F
+                      , fig.align='center')
+```
+
+
+<!--  ```{r libraries} -->
+<!--  source("libraries.r") -->
+<!--  ``` -->
+
+# Cadenas globales de valor
+
+La producción internacional, el comercio y las inversiones se organizan cada vez más dentro de las denominadas cadenas de valor globales (CGV), donde las diferentes etapas del proceso de producción se ubican en diferentes países. Esto se debe fundamentalmente a la revolución de las TICs iniciadas a mediados de la década de 1970. Estas han permitido a las grandes empresas reducir costos y optimizar procesos reestructurando sus operaciones a nivel global, por medio de la subcontratación y la deslocalización de actividades.
+
+De esta manera, las cadenas globales de valor se han convertido en una característica dominante del comercio mundial, afectando a las economías en desarrollo, emergentes y desarrolladas. A diferencia de lo observado a mediados de siglo XX con el auge de las ISI, la tendencia en las últimas décadas es hacia la dispersión internacional de las partes de las cadenas de valor (diseño, producción, comercialización, distribución, etc).
+
+Esta fragmentación de los procesos productivos a nivel mundial ha sido objeto de un sinfín de análisis en el ámbito de la economía desde mediados de los 2000, los cuales apuntan a arrojar luz sobre la escala, la naturaleza y las consecuencias de este fenómeno – incluso dando origen a un propio subcampo orientado al estudio de las CGV.
+
+# La matriz insumo producto internacional (ICIO)
+
+Las Matrices de Insumo-Producto (MIP) describen las relaciones de compraventa entre productores y consumidores dentro de una economía. En el caso de las MIP *sector x sector*, representan los flujos de bienes y servicios finales e intermedios entre los sectores de una economía y los componentes de la demanda final, valuados en una determinada moneda en un momento del tiempo. 
+
+La OCDE posee una base de datos que compila y armoniza las MIP nacionales adoptando el enfoque *sector x sector*. Asimismo, este organismo combina las MIP nacionales con los flujos intersectoriales internacionales de bienes y servicios para generar una MIP global, llamada ICIO (Inter-Country Input-Output).
+
+En los bloques diagonales de la ICIO se representan las transacciones nacionales de bienes y servicios intermedios en todos los sectores, mientras que los bloques fuera de la diagonal representan los flujos de productos intermedios entre países a través de exportaciones e importaciones. Por el lado de los usos finales, se cuenta con vectores de demanda final por país, tal que sus elementos consideran tanto la demanda de bienes finales locales como la de importados (ver Figura XXX).
+
+<!--  ```{r ricardo-cuccovillo} -->
+<!--  [PONER FIGURA CON PRINT DE PAGINA 20 DE https://repositorio.cepal.org/bitstream/handle/11362/43623/1/S1800116_es.pdf -->
+<!--  O PAG 8 DE https://www.gee.gov.pt/pt/docs/estudos-e-seminarios/seminarios/2018-11/23-de-marco-de-2018-seminario-interno-gee-ocde/2520-understanding-and-working-with-oecd-s-tiva-indicators-joaquim-guilhoto-oecd-e-norihiko-yamano-oecd-slides-2/file] -->
+<!--  ``` -->
+
+Los flujos de las tablas están valuados en dólares corrientes (millones de USD) para todos los países de la OCDE y 28 economías no miembros, abarcando los años 2005 a 2015. Las economías se hallan desagregadas en 36 sectores productivos (abarcando todos los sectores primarios, secundarios y terciarios) y en 6 componentes de demanda final (incluyendo consumo de los hogares, consumo del gobierno e inversión, entre otros). Los países no considerados son agrupados como “Resto del mundo” para mantener la consistencia contable del sistema.
+
+En el presente trabajo hacemos uso de la tabla del año 2015, actualizada en diciembre de 2018.
+
+# Preprocesamiento
+
+[DESCRIBIR LOS PASOS QUE USAMOS PARA ARMAR EL GRAFO]
+
+# Detección de comunidades
+
+Para identificar clusters de sectores con vínculos comerciales intensos entre sí, y con poco comercio con otros sectores, usamos el algoritmo para detección de comunidades de XXX.
+
+Esta técnica nos permite adicionalmente detectar sectores relativamente aislados del resto y que no forman parte de ninguna comunidad – outliers – que son descartados para los análisis posteriores. Es a priori esperable que muchas comunidades estén conformadas por sectores de un solo país, en los casos en que estos vínculos sean significativamente más fuertes que los que se mantienen con sectores de otros países. Estas comunidades también son descartadas ya que representan “archipiélagos” de países aislados del resto del mundo. 
+
+# Detección de caminos pesados
+
+Una vez identificadas las comunidades de sectores, se facilita el problema de hallar cadenas globales de valor significativas: en lugar de aplicar el algoritmo XXX sobre toda la red, lo hacemos sobre cada comunidad. 
+
