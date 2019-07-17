@@ -11,9 +11,9 @@ mat_raw = readRDS("data/working/matrix_raw.rds")
 # clean -------------------------------------------------------------------
 
 # 1. remove totals and taxes-subsidies and change in inventories and VA
-i_remove = str_detect(rownames(mat_raw), "OUTPUT") | 
-  str_detect(rownames(mat_raw), "_TAXSUB") 
-j_remove = str_detect(colnames(mat_raw), "TOTAL") | 
+i_remove = str_detect(rownames(mat_raw), "OUTPUT") |
+  str_detect(rownames(mat_raw), "_TAXSUB")
+j_remove = str_detect(colnames(mat_raw), "TOTAL") |
   str_detect(colnames(mat_raw), "INVNT")
 mat = mat_raw[!i_remove, !j_remove]
 
@@ -21,16 +21,16 @@ mat = mat_raw[!i_remove, !j_remove]
 mat[mat<0] = 0
 
 # 3. aggregate (MEX,MX1,MX2) and (CHN,CN1,CN2)
-rownames(mat) %<>% str_replace("MEX|MX1|MX2","MEX") 
-rownames(mat) %<>% str_replace("CHN|CN1|CN2","CHN") 
+rownames(mat) %<>% str_replace("MEX|MX1|MX2","MEX")
+rownames(mat) %<>% str_replace("CHN|CN1|CN2","CHN")
 mat = rowsum(mat, rownames(mat))
-colnames(mat) %<>% str_replace("MEX|MX1|MX2","MEX") 
-colnames(mat) %<>% str_replace("CHN|CN1|CN2","CHN") 
+colnames(mat) %<>% str_replace("MEX|MX1|MX2","MEX")
+colnames(mat) %<>% str_replace("CHN|CN1|CN2","CHN")
 mat = rowsum(t(mat), colnames(mat)) %>% t()
 
 # 4. sum final demand by country
 dfnames = c("HFCE","NPISH","GGFC","GFCF","INVNT","P33")
-colnames(mat) %<>% str_replace(paste(dfnames, collapse="|"),"DF") 
+colnames(mat) %<>% str_replace(paste(dfnames, collapse="|"),"DF")
 mat = rowsum(t(mat), colnames(mat)) %>% t()
 
 # 5. append submatrix of VA (might be needed or not)
@@ -43,8 +43,8 @@ n_countries = sum(str_count(colnames(mat), "_DF"))
 n_inds = sum(str_count(colnames(mat), "USA"))
 # auxiliary matrix to create submatrix of VA
 ones = rep(1, n_inds)
-aux_mat = c(ones, rep(0,ncol(mat))) %>% rep(n_countries-1) %>% c(ones) %>% 
-  matrix(nrow=n_countries, byrow=T) %>% 
+aux_mat = c(ones, rep(0,ncol(mat))) %>% rep(n_countries-1) %>% c(ones) %>%
+  matrix(nrow=n_countries, byrow=T) %>%
   set_rownames(colnames(mat) %>% "["(str_detect(.,"_DF")))
 # create and append submatrix of VA
 va_mat = aux_mat %*% diag(c(va))
@@ -77,7 +77,7 @@ mat_w1 = (mat_bycol + mat_byrow)/2
 mat_w2 = mat
 mat_w2[mat_w2>0] = log(mat_w2[mat_w2>0])
 
-# 11. unweighted version 
+# 11. unweighted version
 mat_uw = mat
 mat_uw[mat_uw>0] = 1
 
@@ -97,11 +97,11 @@ mat_to_graph <-  function(mat_g){
   mat_to_use = mat_g
   # adjacency list and vertices list
   vertices = dimnames(mat_g)  %>% unlist() %>% unique()
-  adj_list = data.table::melt(mat_g) %>% 
-    setNames(c("from","to","weight")) %>% 
-    dplyr::filter(weight>0) 
+  adj_list = data.table::melt(mat_g) %>%
+    setNames(c("from","to","weight")) %>%
+    dplyr::filter(weight>0)
   # (drop weight if using UW?)
-  
+
   # create graph
   library(igraph)
   g = graph_from_data_frame(adj_list, directed=T, vertices=vertices)
@@ -114,7 +114,7 @@ gs <- map(mats, mat_to_graph )
 # looping communities
 
 
-detCom <- function(g){ 
+detCom <- function(g){
 
 c_im = cluster_infomap(g, modularity=F)
 c_lp = cluster_label_prop(g)
@@ -139,9 +139,9 @@ gs_com <- map(gs, detCom)
 mat_to_use = "mat_w2"
 # adjacency list and vertices list
 vertices = dimnames(mats[[mat_to_use]]) %>% unlist() %>% unique()
-adj_list = data.table::melt(mats[[mat_to_use]]) %>% 
-  setNames(c("from","to","weight")) %>% 
-  dplyr::filter(weight>0) 
+adj_list = data.table::melt(mats[[mat_to_use]]) %>%
+  setNames(c("from","to","weight")) %>%
+  dplyr::filter(weight>0)
 # (drop weight if using UW?)
 
 # create graph
@@ -168,6 +168,53 @@ gruposf_lp = grupos_lp %>%
 
 
 
+  # rank paths --------------------------------------------------------------
+
+  # install.packages("BiocManager")
+  # BiocManager::install("NetPathMiner")
+  library(NetPathMiner)
+
+  nodos = gruposf_im %>% unlist(use.names=F) %>% sort()
+  del_nodos = vertices[!vertices %in% nodos]
+
+  matt = mats[["mat_w2"]]
+  matt[c(mats[["mat_w1"]])<0.01] = 0
+
+  adj_list2 = data.table::melt(matt) %>%
+    setNames(c("from","to","weight")) %>%
+    # dplyr::filter(str_detect(from,"ARG") | str_detect(to,"ARG")) %>%
+    dplyr::filter(from %in% nodos | to %in% nodos) %>%
+    dplyr::filter(weight > 0)
+
+  g2 = graph_from_data_frame(adj_list2, directed=T)
+  g2 = graph_from_data_frame(adj_list, directed=T)
+
+  aa = pathRanker(g2, method="prob.shortest.path", K=1000, minPathSize=5)
+  paths = aa$paths %>% map("genes")
+  keep = map_lgl(paths,
+             function(x) length(unique(str_extract(x,".+_")))>=3 & length(x)<9)
+  paths[keep]
+
+  bb = extractPathNetwork(aa, g2)
+  lay = layout_with_fr(bb)
+  plot(bb, layout=lay,
+       edge.color="gray",
+       edge.arrow.size=.1,
+       edge.curved=0.1,
+       # vertex.label="",
+       vertex.label.dist=-0.8,
+       vertex.label.color="black",
+       vertex.label.cex=0.75,
+       vertex.size=4,
+       vertex.color="black")
+
+  adj_list2 %>%
+    dplyr::filter(from == "RUS_DF")
+
+  E(g)$edge.weights = E(g)$weight
+  E(g)$edge.weights
+
+
 # plot --------------------------------------------------------------------
 
 png("output/plots/prueba3.png", width=1600, height=1200)
@@ -181,15 +228,6 @@ dev.off()
 
 
 
-
-
-
-
-
-
-
-
-
 # OLD ---------------------------------------------------------------------
 
 # install.packages("BiocManager")
@@ -199,15 +237,15 @@ dev.off()
 
 # adjacency list and vertices list (W)
 # vertices = colnames(mat_w) %>% c(rownames(mat_w)) %>% unique()
-# adj_list = data.table::melt(mat_w) %>% 
-  # setNames(c("from","to","weight")) %>% 
+# adj_list = data.table::melt(mat_w) %>%
+  # setNames(c("from","to","weight")) %>%
   # dplyr::filter(weight>0)
-         
 
 
-# adj_list2 = data.table::melt(mat_w) %>% 
-#   setNames(c("from","to","weight")) %>% 
+
+# adj_list2 = data.table::melt(mat_w) %>%
+#   setNames(c("from","to","weight")) %>%
 #   mutate(cfrom = str_match(from, "(.+)_")[,2]
 #          ,cto = str_match(to, "(.+)_")[,2]
-#          , weight = ifelse(cfrom==cto, 0, weight)) %>% 
+#          , weight = ifelse(cfrom==cto, 0, weight)) %>%
 #   dplyr::filter(weight>0)
