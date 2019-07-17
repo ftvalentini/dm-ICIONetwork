@@ -176,6 +176,15 @@ gruposf_lp = grupos_lp %>%
 
   nodos = gruposf_im %>% unlist(use.names=F) %>% sort()
   del_nodos = vertices[!vertices %in% nodos]
+  
+  primarios = nodos[str_detect(nodos, pattern = paste(c('_01T03', 
+                                    '_05T06',
+                                    '_07T08',
+                                    '_16',
+                                    '_24'), collapse="|"))]
+  
+  primarios_sin_eeuu = primarios[str_detect(primarios, pattern = paste(c('USA', 
+                                                                         'CAN'), collapse="|"), negate = TRUE)]
 
   matt = mats[["mat_w2"]]
   matt[c(mats[["mat_w1"]])<0.01] = 0
@@ -187,9 +196,9 @@ gruposf_lp = grupos_lp %>%
     dplyr::filter(weight > 0)
 
   g2 = graph_from_data_frame(adj_list2, directed=T)
-  g2 = graph_from_data_frame(adj_list, directed=T)
-
-  aa = pathRanker(g2, method="prob.shortest.path", K=1000, minPathSize=5)
+  #g2 = graph_from_data_frame(adj_list, directed=T)
+set.seed(150)
+  aa = pathRanker(g2, method="prob.shortest.path",start = primarios_sin_eeuu, K=1000, minPathSize=5)
   paths = aa$paths %>% map("genes")
   keep = map_lgl(paths,
              function(x) length(unique(str_extract(x,".+_")))>=3 & length(x)<9)

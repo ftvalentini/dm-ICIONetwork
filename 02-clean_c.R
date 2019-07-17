@@ -110,9 +110,10 @@ mat_to_graph <-  function(mat_g){
 }
 
 
+# generating graphs 
 gs <- map(mats, mat_to_graph )
 
-# looping communities
+# looping communities -----------------------------------------------------
 
 
 detCom <- function(g){ 
@@ -134,9 +135,10 @@ detCom <- function(g){
               gruposf_lp = gruposf_lp)
 }
 
+# generating communites
 gs_com <- map(gs, detCom)
 
-# commnuity diagnostics
+# commnuity diagnostics --------------------------------------------------
 
 diagnostics1 <- function(gc){
   q_com <- map_depth(gc,1,length)
@@ -170,6 +172,111 @@ full_diagnostics <- function(diag1, diag2){
 }
 
 algorithm_diagnostics <- full_diagnostics(d1,d2)
+
+# rank paths ----------------------------------------------------------------
+
+# install.packages("BiocManager")
+# BiocManager::install("NetPathMiner")
+library(NetPathMiner)
+
+# rank paths starting from primary sectors (but not from north america)
+path_network <- function(icoi_mat, community, matrices){
+
+  nodos = community %>% unlist(use.names=F) %>% sort()
+  #del_nodos = vertices[!vertices %in% nodos]
+  
+  primarios = nodos[str_detect(nodos, pattern = paste(c('_01T03', 
+                                                        '_05T06',
+                                                        '_07T08',
+                                                        '_16',
+                                                        '_24'), collapse="|"))]
+  
+  primarios_sin_eeuu = primarios[str_detect(primarios, pattern = paste(c('USA', 
+                                                                         'CAN'), collapse="|"), negate = TRUE)]
+  matt = icoi_mat
+  matt[c(matrices[["mat_w1"]])<0.01] = 0
+  
+  adj_list2 = data.table::melt(matt) %>%
+    setNames(c("from","to","weight")) %>%
+    # dplyr::filter(str_detect(from,"ARG") | str_detect(to,"ARG")) %>%
+    dplyr::filter(from %in% nodos | to %in% nodos) %>%
+    dplyr::filter(weight > 0)
+  
+  g2 = graph_from_data_frame(adj_list2, directed=T)
+  #g2 = graph_from_data_frame(adj_list, directed=T)
+  
+  aa = pathRanker(g2, method="prob.shortest.path",start = primarios_sin_eeuu, K=1000, minPathSize=5)
+  paths = aa$paths %>% map("genes")
+  keep = map_lgl(paths,
+                 function(x) length(unique(str_extract(x,".+_")))>=3 & length(x)<9)
+  paths[keep]
+  
+  bb = extractPathNetwork(aa, g2)
+  return(bb)
+}
+
+
+# genrate rank for each community of each matrix
+path_in_community = vector(mode = "list")
+temp_res <- vector(mode = "list")
+for (i in 1:length(mats)){
+  print(i)
+  for (j in 1:length(gs_com[[i]])){
+    print(j)
+    temp_res[[j]] = path_network(icoi_mat = mats[[i]],community = gs_com[[i]][[j]],matrices = mats )
+  }
+  path_in_community[[i]] <-temp_res
+}
+
+
+
+# plot paths ----------------------------------------------------------------
+
+somePDFPath = "output/plots/ranks.pdf"
+pdf(file=somePDFPath)  
+
+for (i in 1:length(path_in_community)){   
+ # par(mfrow = c(2,1))
+  
+  lay = layout_with_fr(path_in_community[[i]][[1]])
+  plot(path_in_community[[i]][[1]], layout=lay,
+       edge.color="gray",
+       edge.arrow.size=.1,
+       edge.curved=0.1,
+       # vertex.label="",
+       vertex.label.dist=-0.8,
+       vertex.label.color="black",
+       vertex.label.cex=0.75,
+       vertex.size=4,
+       vertex.color="black")
+  
+  lay = layout_with_fr(path_in_community[[i]][[2]])
+  plot(path_in_community[[i]][[2]], layout=lay,
+       edge.color="gray",
+       edge.arrow.size=.1,
+       edge.curved=0.1,
+       # vertex.label="",
+       vertex.label.dist=-0.8,
+       vertex.label.color="black",
+       vertex.label.cex=0.75,
+       vertex.size=4,
+       vertex.color="black")
+} 
+dev.off() 
+
+
+# plot full ------------------------------------------------------------------
+g <- gs[[2]]
+E(g)$edge.weights = E(g)$weight
+E(g)$edge.weights
+
+png("output/plots/prueba3.png", width=1600, height=1200)
+lay = layout_with_kk(g)
+plot(g, layout=lay, edge.color="white",
+     vertex.size=1,
+     vertex.label="",
+     vertex.color="black")
+dev.off()
 
 
 # # graph -------------------------------------------------------------------
