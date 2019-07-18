@@ -17,6 +17,8 @@ paq_desiempre <- c(
 )
 paq_proj <- c(
   "igraph"
+  ,"data.table"
+  ,"RColorBrewer"
 )
 
 # no tocar ----------------------------------------------------------------
