@@ -37,12 +37,13 @@ Las Matrices de Insumo-Producto (MIP) describen las relaciones de compraventa en
 
 La OCDE posee una base de datos que compila y armoniza las MIP nacionales adoptando el enfoque *sector x sector*. Asimismo, este organismo combina las MIP nacionales con los flujos intersectoriales internacionales de bienes y servicios para generar una MIP global, llamada ICIO (Inter-Country Input-Output).
 
-En los bloques diagonales de la ICIO se representan las transacciones nacionales de bienes y servicios intermedios en todos los sectores, mientras que los bloques fuera de la diagonal representan los flujos de productos intermedios entre países a través de exportaciones e importaciones. Por el lado de los usos finales, se cuenta con vectores de demanda final por país, tal que sus elementos consideran tanto la demanda de bienes finales locales como la de importados (ver Figura XXX).
+En los bloques diagonales de la ICIO se representan las transacciones nacionales de bienes y servicios intermedios en todos los sectores, mientras que los bloques fuera de la diagonal representan los flujos de productos intermedios entre países a través de exportaciones e importaciones. Por el lado de los usos finales, se cuenta con vectores de demanda final por país, tal que sus elementos consideran tanto la demanda de bienes finales locales como la de importados (ver Figura \ref{fig:estructura}).
 
-<!--  ```{r ricardo-cuccovillo} -->
-<!--  [PONER FIGURA CON PRINT DE PAGINA 20 DE https://repositorio.cepal.org/bitstream/handle/11362/43623/1/S1800116_es.pdf -->
-<!--  O PAG 8 DE https://www.gee.gov.pt/pt/docs/estudos-e-seminarios/seminarios/2018-11/23-de-marco-de-2018-seminario-interno-gee-ocde/2520-understanding-and-working-with-oecd-s-tiva-indicators-joaquim-guilhoto-oecd-e-norihiko-yamano-oecd-slides-2/file] -->
-<!--  ``` -->
+```{r estructura, out.width='80%', fig.cap="Estructura la tabla ICIO"}
+knitr::include_graphics(c(
+  "resources/png/estructura_icio.PNG"
+))
+```
 
 Los flujos de las tablas están valuados en dólares corrientes (millones de USD) para todos los países de la OCDE y 28 economías no miembros, abarcando los años 2005 a 2015. Las economías se hallan desagregadas en 36 sectores productivos (abarcando todos los sectores primarios, secundarios y terciarios) y en 6 componentes de demanda final (incluyendo consumo de los hogares, consumo del gobierno e inversión, entre otros). Los países no considerados son agrupados como “Resto del mundo” para mantener la consistencia contable del sistema.
 
@@ -51,6 +52,9 @@ En el presente trabajo hacemos uso de la tabla del año 2015, actualizada en dic
 # Preprocesamiento
 
 [DESCRIBIR LOS PASOS QUE USAMOS PARA ARMAR EL GRAFO]
+
+# Análisis descriptivo
+
 
 # Detección de comunidades
 
@@ -62,3 +66,16 @@ Esta técnica nos permite adicionalmente detectar sectores relativamente aislado
 
 Una vez identificadas las comunidades de sectores, se facilita el problema de hallar cadenas globales de valor significativas: en lugar de aplicar el algoritmo XXX sobre toda la red, lo hacemos sobre cada comunidad. 
 
+# Anexo
+
+```{r paises, out.width='80%', fig.cap="Países incluidos en ICIO (2015)"}
+knitr::include_graphics(c(
+  "resources/png/countries.png"
+))
+```
+
+```{r sectores, out.width='80%', fig.cap="Sectores incluidos en ICIO (2015)"}
+knitr::include_graphics(c(
+  "resources/png/sectores.png"
+))
+```

@@ -1,70 +1,70 @@
-id,name,region
-AUS,Australia,Oceania
-AUT,Austria,Western Europe
-BEL,Belgium,Western Europe
-CAN,Canada,NAFTA
-CHL,Chile,Central & South America
-CZE,Czech Republic,Eastern Europe
-DNK,Denmark,Western Europe
-EST,Estonia,Eastern Europe
-FIN,Finland,Eastern Europe
-FRA,France,Western Europe
-DEU,Germany,Western Europe
-GRC,Greece,Eastern Europe
-HUN,Hungary,Eastern Europe
-ISL,Iceland,Western Europe
-IRL,Ireland,Western Europe
-ISR,Israel,Middle East
-ITA,Italy,Western Europe
-JPN,Japan,East Asia
-KOR,Korea,East Asia
-LVA,Latvia,Eastern Europe
-LTU,Lithuania,Eastern Europe
-LUX,Luxembourg,Western Europe
-MEX,Mexico,NAFTA
-NLD,Netherlands,Western Europe
-NZL,New Zealand,Oceania
-NOR,Norway,Western Europe
-POL,Poland,Eastern Europe
-PRT,Portugal,Western Europe
-SVK,Slovak Republic,Eastern Europe
-SVN,Slovenia,Eastern Europe
-ESP,Spain,Western Europe
-SWE,Sweden,Western Europe
-CHE,Switzerland,Western Europe
-TUR,Turkey,Middle East
-GBR,United Kingdom,Western Europe
-USA,United States,NAFTA
-MX1,Mexico - Activities excluding Global Manufacturing,NAFTA
-MX2,Mexico - Global Manufacturing activities,NAFTA
-ARG,Argentina,Central & South America
-BRA,Brazil,Central & South America
-BRN,Brunei Darussalam,South & Southeast Asia
-BGR,Bulgaria,Eastern Europe
-KHM,Cambodia,South & Southeast Asia
-CHN,China (People's Republic of),East Asia
-COL,Colombia,Central & South America
-CRI,Costa Rica,Central & South America
-HRV,Croatia,Eastern Europe
-CYP,Cyprus,Eastern Europe
-IND,India,South & Southeast Asia
-IDN,Indonesia,South & Southeast Asia
-HKG,"Hong Kong, China",East Asia
-KAZ,Kazakhstan,Central & North Asia
-MYS,Malaysia,South & Southeast Asia
-MLT,Malta,Eastern Europe
-MAR,Morocco,Africa
-PER,Peru,Central & South America
-PHL,Philippines,South & Southeast Asia
-ROU,Romania,Eastern Europe
-RUS,Russian Federation,Central & North Asia
-SAU,Saudi Arabia,Middle East
-SGP,Singapore,South & Southeast Asia
-ZAF,South Africa,Africa
-TWN,Chinese Taipei,East Asia
-THA,Thailand,South & Southeast Asia
-TUN,Tunisia,Africa
-VNM,Viet Nam,South & Southeast Asia
-ROW,Rest of the World,Rest of World
-CN1,China - Activities excluding export processing ,East Asia
-CN2,China - Export processing activities,East Asia
+id,name,region,continent
+AUS,Australia,Oceania,Oceania
+AUT,Austria,Western Europe,Europe
+BEL,Belgium,Western Europe,Europe
+CAN,Canada,NAFTA,North America
+CHL,Chile,Central & South America,Central & South America
+CZE,Czech Republic,Eastern Europe,Europe
+DNK,Denmark,Western Europe,Europe
+EST,Estonia,Eastern Europe,Europe
+FIN,Finland,Eastern Europe,Europe
+FRA,France,Western Europe,Europe
+DEU,Germany,Western Europe,Europe
+GRC,Greece,Eastern Europe,Europe
+HUN,Hungary,Eastern Europe,Europe
+ISL,Iceland,Western Europe,Europe
+IRL,Ireland,Western Europe,Europe
+ISR,Israel,Middle East,Asia
+ITA,Italy,Western Europe,Europe
+JPN,Japan,East Asia,Asia
+KOR,Korea,East Asia,Asia
+LVA,Latvia,Eastern Europe,Europe
+LTU,Lithuania,Eastern Europe,Europe
+LUX,Luxembourg,Western Europe,Europe
+MEX,Mexico,NAFTA,North America
+NLD,Netherlands,Western Europe,Europe
+NZL,New Zealand,Oceania,Oceania
+NOR,Norway,Western Europe,Europe
+POL,Poland,Eastern Europe,Europe
+PRT,Portugal,Western Europe,Europe
+SVK,Slovak Republic,Eastern Europe,Europe
+SVN,Slovenia,Eastern Europe,Europe
+ESP,Spain,Western Europe,Europe
+SWE,Sweden,Western Europe,Europe
+CHE,Switzerland,Western Europe,Europe
+TUR,Turkey,Middle East,Asia
+GBR,United Kingdom,Western Europe,Europe
+USA,United States,NAFTA,North America
+MX1,Mexico - Activities excluding Global Manufacturing,NAFTA,North America
+MX2,Mexico - Global Manufacturing activities,NAFTA,North America
+ARG,Argentina,Central & South America,Central & South America
+BRA,Brazil,Central & South America,Central & South America
+BRN,Brunei Darussalam,South & Southeast Asia,Asia
+BGR,Bulgaria,Eastern Europe,Europe
+KHM,Cambodia,South & Southeast Asia,Asia
+CHN,China (People's Republic of),East Asia,Asia
+COL,Colombia,Central & South America,Central & South America
+CRI,Costa Rica,Central & South America,Central & South America
+HRV,Croatia,Eastern Europe,Europe
+CYP,Cyprus,Eastern Europe,Europe
+IND,India,South & Southeast Asia,Asia
+IDN,Indonesia,South & Southeast Asia,Asia
+HKG,"Hong Kong, China",East Asia,Asia
+KAZ,Kazakhstan,Central & North Asia,Asia
+MYS,Malaysia,South & Southeast Asia,Asia
+MLT,Malta,Eastern Europe,Europe
+MAR,Morocco,Africa,Africa
+PER,Peru,Central & South America,Central & South America
+PHL,Philippines,South & Southeast Asia,Asia
+ROU,Romania,Eastern Europe,Europe
+RUS,Russian Federation,Central & North Asia,Asia
+SAU,Saudi Arabia,Middle East,Asia
+SGP,Singapore,South & Southeast Asia,Asia
+ZAF,South Africa,Africa,Africa
+TWN,Chinese Taipei,East Asia,Asia
+THA,Thailand,South & Southeast Asia,Asia
+TUN,Tunisia,Africa,Africa
+VNM,Viet Nam,South & Southeast Asia,Asia
+ROW,Rest of the World,Rest of World,Rest of World
+CN1,China - Activities excluding export processing ,East Asia,Asia
+CN2,China - Export processing activities,East Asia,Asia
