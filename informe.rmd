@@ -19,9 +19,15 @@ knitr::opts_chunk$set(echo=F, warning=F, message=F
 ```
 
 
-<!--  ```{r libraries} -->
-<!--  source("libraries.r") -->
-<!--  ``` -->
+```{r libraries}
+source("libraries.r")
+```
+
+```{r read-data}
+# tablas centralidad
+tabcen = readRDS("output/centrality.rds")
+```
+
 
 # Cadenas globales de valor
 
@@ -55,6 +61,48 @@ En el presente trabajo hacemos uso de la tabla del año 2015, actualizada en dic
 
 # Análisis descriptivo
 
+[COSAS]
+
+```{r degree-w, out.width='80%'}
+# grado entrada
+deg_in_w = tabcen$degree_w %>% select(sector, d_in) %>% arrange(-d_in) %>% head(10)
+# grado salida
+deg_out_w = tabcen$degree_w %>% select(sector, d_out) %>% arrange(-d_out) %>% head(10)
+
+list(deg_in_w,deg_out_w) %>%
+  knitr::kable(caption="10 principales sectores según grado de entrada y grado de salida (Grafo pesado en mill. de USD)",booktabs=T) 
+
+```
+
+[COSAS]
+
+```{r degree-uw, out.width='80%'}
+# grado entrada
+deg_in_uw = tabcen$degree %>% select(sector, d_in) %>% arrange(-d_in) %>% head(10)
+# grado salida
+deg_out_uw = tabcen$degree %>% select(sector, d_out) %>% arrange(-d_out) %>% head(10)
+
+list(deg_in_uw,deg_out_uw) %>%
+  knitr::kable(caption="10 principales sectores según grado de entrada y grado de salida (Grafo no pesado)",booktabs=T) 
+
+```
+
+[COSAS]
+
+```{r centrality, out.width='80%'}
+# betweenness
+betw = tabcen$others %>% select(sector, betw) %>% arrange(-betw) %>% head(10)
+# closeness in
+c_in = tabcen$others %>% select(sector, close_in) %>% arrange(-close_in) %>% head(10)
+# closeness out
+c_out = tabcen$others %>% select(sector, close_out) %>% arrange(-close_out) %>% head(10)
+
+list(betw,c_in,c_out) %>%
+  knitr::kable(caption="10 principales sectores según betweenness y cercanía (de entrada y salida) (Grafo no pesado)")
+
+```
+
+[COSAS]
 
 # Detección de comunidades
 
@@ -68,13 +116,13 @@ Una vez identificadas las comunidades de sectores, se facilita el problema de ha
 
 # Anexo
 
-```{r paises, out.width='80%', fig.cap="Países incluidos en ICIO (2015)"}
+```{r paises, out.width='80%', fig.show='hold', fig.cap="Países incluidos en ICIO (2015)"}
 knitr::include_graphics(c(
   "resources/png/countries.png"
 ))
 ```
 
-```{r sectores, out.width='80%', fig.cap="Sectores incluidos en ICIO (2015)"}
+```{r sectores, out.width='80%', fig.show='hold', fig.cap="Sectores incluidos en ICIO (2015)"}
 knitr::include_graphics(c(
   "resources/png/sectores.png"
 ))
