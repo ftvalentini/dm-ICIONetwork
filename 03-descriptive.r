@@ -27,33 +27,32 @@ gs = list(log=mat, usd=mat_usd, int=mat_int) %>%
   map(mat_to_graph)
 
 
-# degree ------------------------------------------------------------------
+# centrality ------------------------------------------------------------------
 
-# ALL unweighted
+
+# DEGREE
+# a. ALL unweighted
 degree = tibble(
   sector = names(degree(gs$usd))
   ,d_tot = degree(gs$usd, mode="total")
   ,d_in = degree(gs$usd, mode="in")
   ,d_out = degree(gs$usd, mode="out")
 )
-
-# ALL weighted
+# b. ALL weighted
 degree_w = tibble(
   sector = names(strength(gs$usd))
   ,d_tot = strength(gs$usd, mode="total")
   ,d_in = strength(gs$usd, mode="in")
   ,d_out = strength(gs$usd, mode="out")
 )
-
-# INTNL unweighted
+# c. INTNL unweighted
 degree_int = tibble(
   sector = names(degree(gs$int))
   ,d_tot = degree(gs$int, mode="total")
   ,d_in = degree(gs$int, mode="in")
   ,d_out = degree(gs$int, mode="out")
 )
-
-# INTNL weighted
+# d. INTNL weighted
 degree_w_int = tibble(
   sector = names(strength(gs$int))
   ,d_tot = strength(gs$int, mode="total")
@@ -61,6 +60,18 @@ degree_w_int = tibble(
   ,d_out = strength(gs$int, mode="out")
 )
 
+# BETWEENNESS Y CLOSENESS unweighted
+others = tibble(
+  sector = V(gs$usd)$name
+  ,betw = betweenness(gs$usd, weights=NULL)
+  ,close_in = closeness(gs$usd, mode="in", weights=NULL)
+  ,close_out = closeness(gs$usd, mode="out", weights=NULL)
+)
+
+# save
+centrality = list(degree, degree_w, degree_int, degree_w_int, others) %>% 
+  setNames(c("degree", "degree_w", "degree_int", "degree_w_int", "others"))
+saveRDS(centrality, "output/centrality.rds")
 
 
 # plot --------------------------------------------------------------------
