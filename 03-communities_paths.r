@@ -104,9 +104,7 @@ path_network <- function(icoi_mat, community, matrices){
   
   primarios = nodos[str_detect(nodos, pattern = paste(c('_01T03', 
                                                         '_05T06',
-                                                        '_07T08',
-                                                        '_16',
-                                                        '_24'), collapse="|"))]
+                                                        '_07T08'), collapse="|"))]
   
   primarios_sin_eeuu = primarios[str_detect(primarios, pattern = paste(c('USA', 
                                                                          'CAN'), collapse="|"), negate = TRUE)]
@@ -122,7 +120,7 @@ path_network <- function(icoi_mat, community, matrices){
   g2 = graph_from_data_frame(adj_list2, directed=T)
   #g2 = graph_from_data_frame(adj_list, directed=T)
   
-  aa = pathRanker(g2, method="prob.shortest.path",start = primarios_sin_eeuu, K=1000, minPathSize=5)
+  aa = pathRanker(g2, method="prob.shortest.path",start = primarios_sin_eeuu, K=1, minPathSize=5)
   paths = aa$paths %>% map("genes")
   keep = map_lgl(paths,
                  function(x) length(unique(str_extract(x,".+_")))>=3 & length(x)<9)
@@ -136,13 +134,17 @@ path_network <- function(icoi_mat, community, matrices){
 # genrate rank for each community of each matrix
 path_in_community = vector(mode = "list")
 temp_res <- vector(mode = "list")
+path_in_mat <- vector(mode = "list")
 for (i in 1:length(mats)){
   print(i)
   for (j in 1:length(gs_com[[i]])){
     print(j)
-    temp_res[[j]] = path_network(icoi_mat = mats[[i]],community = gs_com[[i]][[j]],matrices = mats )
+    for (k in 1:length(gs_com[[i]][[j]])){
+    temp_res[[k]] = path_network(icoi_mat = mats[[i]],community = gs_com[[i]][[j]],matrices = mats )
+    }
+  path_in_community[[j]] <-temp_res
   }
-  path_in_community[[i]] <-temp_res
+path_in_mat[[i]] <- path_in_community
 }
 
 
@@ -152,32 +154,40 @@ for (i in 1:length(mats)){
 somePDFPath = "output/plots/ranks.pdf"
 pdf(file=somePDFPath)  
 
-for (i in 1:length(path_in_community)){   
+for (i in 1:length(path_in_mat)){   
   # par(mfrow = c(2,1))
-  
-  lay = layout_with_fr(path_in_community[[i]][[1]])
-  plot(path_in_community[[i]][[1]], layout=lay,
-       edge.color="gray",
-       edge.arrow.size=.1,
-       edge.curved=0.1,
-       # vertex.label="",
-       vertex.label.dist=-0.8,
-       vertex.label.color="black",
-       vertex.label.cex=0.75,
-       vertex.size=4,
-       vertex.color="black")
-  
-  lay = layout_with_fr(path_in_community[[i]][[2]])
-  plot(path_in_community[[i]][[2]], layout=lay,
-       edge.color="gray",
-       edge.arrow.size=.1,
-       edge.curved=0.1,
-       # vertex.label="",
-       vertex.label.dist=-0.8,
-       vertex.label.color="black",
-       vertex.label.cex=0.75,
-       vertex.size=4,
-       vertex.color="black")
+  print(i)
+  for (j in 1:length(path_in_mat[[i]])){
+    print(j)
+    for (k in 1:length(path_in_mat[[i]][[j]])){
+      print(k)
+      
+    if (ecount(path_in_mat[[i]][[j]][[k]]) != 0){  
+    lay = layout_with_fr(path_in_mat[[i]][[j]][[k]])
+    plot(path_in_mat[[i]][[j]][[k]], layout=lay,
+         edge.color="gray",
+         edge.arrow.size=.1,
+         edge.curved=0.1,
+         # vertex.label="",
+         vertex.label.dist=-0.8,
+         vertex.label.color="black",
+         vertex.label.cex=0.75,
+         vertex.size=4,
+         vertex.color="black")
+    }
+    # lay = layout_with_fr(path_in_community[[i]][[2]])
+    # plot(path_in_community[[i]][[2]], layout=lay,
+    #      edge.color="gray",
+    #      edge.arrow.size=.1,
+    #      edge.curved=0.1,
+    #      # vertex.label="",
+    #      vertex.label.dist=-0.8,
+    #      vertex.label.color="black",
+    #      vertex.label.cex=0.75,
+    #      vertex.size=4,
+    #      vertex.color="black")
+    }
+  }
 } 
 dev.off() 
 
