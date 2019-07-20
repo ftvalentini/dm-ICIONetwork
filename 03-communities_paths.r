@@ -120,13 +120,23 @@ path_network <- function(icoi_mat, community, matrices){
   g2 = graph_from_data_frame(adj_list2, directed=T)
   #g2 = graph_from_data_frame(adj_list, directed=T)
   
-  aa = pathRanker(g2, method="prob.shortest.path",start = primarios_sin_eeuu, K=1, minPathSize=5)
-  paths = aa$paths %>% map("genes")
-  keep = map_lgl(paths,
-                 function(x) length(unique(str_extract(x,".+_")))>=3 & length(x)<9)
-  paths[keep]
+  bb = 0
+  iter = 0
+  while (bb %>%
+         names() %>%
+         str_sub(., 1, 3) %>%
+         unique() %>%
+         length() <3) {
+  aa = pathRanker(g2, method="prob.shortest.path",start = primarios_sin_eeuu, K=1, minPathSize=7)
+  # paths = aa$paths %>% map("genes")
+  # keep = map_lgl(paths,
+  #                function(x) length(unique(str_extract(x,".+_")))>=3 & length(x)<9)
+  # paths[keep]
   
   bb = extractPathNetwork(aa, g2)
+  iter <- iter + 1
+  if (iter == 20) break
+}
   return(bb)
 }
 
@@ -141,6 +151,7 @@ for (i in 1:length(mats)){
     print(j)
     for (k in 1:length(gs_com[[i]][[j]])){
     temp_res[[k]] = path_network(icoi_mat = mats[[i]],community = gs_com[[i]][[j]],matrices = mats )
+    
     }
   path_in_community[[j]] <-temp_res
   }
@@ -153,6 +164,11 @@ path_in_mat[[i]] <- path_in_community
 
 somePDFPath = "output/plots/ranks.pdf"
 pdf(file=somePDFPath)  
+
+
+mapping = data.frame(matrix = c("w1","w2","UW"), 
+                     algo1 = c("Infomap"),
+                     algo2 = c("LP"))
 
 for (i in 1:length(path_in_mat)){   
   # par(mfrow = c(2,1))
@@ -173,7 +189,8 @@ for (i in 1:length(path_in_mat)){
          vertex.label.color="black",
          vertex.label.cex=0.75,
          vertex.size=4,
-         vertex.color="black")
+         vertex.color="black",
+         main = paste(mapping[i,1], mapping[i,j+1], sep = " "))
     }
     # lay = layout_with_fr(path_in_community[[i]][[2]])
     # plot(path_in_community[[i]][[2]], layout=lay,
