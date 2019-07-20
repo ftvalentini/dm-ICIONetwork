@@ -28,6 +28,7 @@ source("libraries.r")
 tabcen = readRDS("output/centrality.rds")
 ```
 
+Uno de los rasgos salientes de la producción mundial de bienes y servicios en los últimos 50 años ha sido la deslocalización de las etapas de los procesos productivos en las llamadas *cadenas globales de valor*. En el presente trabajo usamos la información de comercio internacional intersectorial disponible en las Inter-Country Input-Output Matrices (ICIO) de la OCDE para identificar cadenas globales de valor. Para ello representamos la matriz del año 2015 como un grafo dirigido que usamos para identificar comunidades de comercio intenso, sobre las cuales aplicamos un algoritmo de detección de caminos pesados.
 
 # Cadenas globales de valor
 
@@ -45,23 +46,61 @@ La OCDE posee una base de datos que compila y armoniza las MIP nacionales adopta
 
 En los bloques diagonales de la ICIO se representan las transacciones nacionales de bienes y servicios intermedios en todos los sectores, mientras que los bloques fuera de la diagonal representan los flujos de productos intermedios entre países a través de exportaciones e importaciones. Por el lado de los usos finales, se cuenta con vectores de demanda final por país, tal que sus elementos consideran tanto la demanda de bienes finales locales como la de importados (ver Figura \ref{fig:estructura}).
 
+La tabla incluye además un vector-fila de valor agregado en cada sector de cada país. De esta manera, al sumar las compras intermedias con el valor agregado por sector (por columna) se obtiene el valor bruto de la producción de cada sector. Análogamente, al sumar las ventas intermedias y finales por sector (por fila), se obtiene el mismo guarismo de valor bruto de producción. 
+
 ```{r estructura, out.width='80%', fig.cap="Estructura la tabla ICIO"}
 knitr::include_graphics(c(
   "resources/png/estructura_icio.PNG"
 ))
 ```
 
-Los flujos de las tablas están valuados en dólares corrientes (millones de USD) para todos los países de la OCDE y 28 economías no miembros, abarcando los años 2005 a 2015. Las economías se hallan desagregadas en 36 sectores productivos (abarcando todos los sectores primarios, secundarios y terciarios) y en 6 componentes de demanda final (incluyendo consumo de los hogares, consumo del gobierno e inversión, entre otros). Los países no considerados son agrupados como “Resto del mundo” para mantener la consistencia contable del sistema.
+Los flujos de las tablas están valuados en dólares corrientes (millones de USD) para todos los países de la OCDE y 28 economías no miembros, abarcando los años 2005 a 2015. Las economías se hallan desagregadas en 36 sectores productivos (abarcando todos los sectores primarios, secundarios y terciarios) y en 6 componentes de demanda final (incluyendo consumo de los hogares, consumo del gobierno e inversión, entre otros). Los países no considerados son agrupados como “Resto del mundo” para mantener la consistencia contable del sistema (ver Figuras \ref{fig:paises} y \ref{fig:sectores} del [Anexo]).
 
 En el presente trabajo hacemos uso de la tabla del año 2015, actualizada en diciembre de 2018.
 
 # Preprocesamiento
 
-[DESCRIBIR LOS PASOS QUE USAMOS PARA ARMAR EL GRAFO]
+Para representar la matriz como un grafo dirigido aplicamos secuencialmente la siguiente serie de transformaciones que tienen como objetivo conservar las transacciones económicamente significativas y relevantes para el ejercicio:
 
-# Análisis descriptivo
+1. Descartamos los valores brutos de producción sectoriales, así como también el componente de demanda final de variaciones de existencias (ya que consiste en un residuo contable más que una estimación fidedigna).
 
-[COSAS]
+2. Agrupamos los flujos correspondientes a China y México, que en la tabla de origen se hallan discriminados entre actividades procesadoras de exportaciones y no procesadoras de exportaciones.  
+
+3. Conservamos un solo valor de demanda final para cada sector, eliminando la distinción entre consumo de los hogares, inversión, consumo público, etc.
+
+4. Eliminamos las compraventas de cada sector consigo mismo. 
+
+5. Conservamos únicamente las transacciones que representan simultáneamente más del 0.1% de las ventas para la parte vendedora y más del 0.1% de las compras de la parte compradora.
+
+6. Conservamos únicamente las transacciones mayores que 1 mill. de USD.
+
+7. Descartamos los valores de valor agregado de cada sector y el sector de servicio doméstico (ya que es puro valor agregado--no tiene compras intermedias).
+
+# Caracterización de la red
+
+Para determinar algunas características generales de la red resulta útil representarla como un grafo no pesado, tal que cada arista pasa a tener el mismo peso. En la Figura \ref{fig:degree-dist} se observa la distribución del grado de entrada, salida y total (entrada+salida) de los nodos en dicho grafo.
+
+```{r degree-dist, fig.cap="Distribución del grado normalizado (Grafo no pesado)"}
+knitr::include_graphics(c(
+  "output/plots/degree_distribution.png"
+))
+```
+
+Como es de esperar, la distribución del grado presenta un sesgo significativo hacia derecha. Esto indica que la gran mayoría de los nodos tiene bajo grado, mientras que una pequeña porción de ellos tiene grado alto.
+
+En particular, los sectores de mayor grado de entrada son en realidad las demandas finales de los países centrales (EEUU, Alemania, Gran Bretaña, China, Francia, etc.), que reciben bienes y servicios de entre el 68% y 32% sectores del mundo. En cambio, al observar el grado de salida se destacan los sectores de servicios (Comercio mayorista y minorista y Actividades profesionales, científicas, técnicas y de servicios administrativos y de apoyo) y otras industriales (como Equipo eléctrico o Maquinaria), principalmente de EEUU, China y Alemania (ver Cuadro \ref{tab:degree-uw}). 
+
+```{r degree-uw, out.width='80%'}
+# grado entrada
+deg_in_uw = tabcen$degree %>% select(sector, d_in) %>% arrange(-d_in) %>% head(10) %>% mutate(d_in=round(d_in,3))
+# grado salida
+deg_out_uw = tabcen$degree %>% select(sector, d_out) %>% arrange(-d_out) %>% head(10)%>% mutate(d_out=round(d_out,3))
+
+list(deg_in_uw,deg_out_uw) %>%
+  knitr::kable(caption="10 principales sectores según grado de entrada y grado de salida (Grafo no pesado)") 
+```
+
+Al considerar el grafo pesado, tomando como pesos los flujos en millones de USD, se observa que otros países ganan importancia por su grado de entrada, en particular las demandas finales de India y Brasil -- si bien no compran productos de muchas partes del mundo, consumen mucho en términos reales. En cuanto al grado de salida, ganan importancia frente al resto los sectores productivos de China y EEUU, siendo de esta manera los dos grandes productores de bienes y servicios del mundo (ver Cuadro \ref{tab:degree-w}). 
 
 ```{r degree-w, out.width='80%'}
 # grado entrada
@@ -70,39 +109,26 @@ deg_in_w = tabcen$degree_w %>% select(sector, d_in) %>% arrange(-d_in) %>% head(
 deg_out_w = tabcen$degree_w %>% select(sector, d_out) %>% arrange(-d_out) %>% head(10)
 
 list(deg_in_w,deg_out_w) %>%
-  knitr::kable(caption="10 principales sectores según grado de entrada y grado de salida (Grafo pesado en mill. de USD)",booktabs=T) 
-
+  knitr::kable(caption="10 principales sectores según grado de entrada y grado de salida (Grafo pesado en mill. de USD)") 
 ```
 
-[COSAS]
+Para detectar sectores que son intermediarios significativos del comercio mundial (es decir, que compran y venden simultánamente de y a muchos otros sectores) calculamos la *betweenness* de cada nodo en el grafo no pesado -- estos sectores tienen un rol preponderante ya que muchos de los caminos más cortos pasan por ellos. En el Cuadro \ref{tab:centrality} observamos la importancia relativa en este sentido de los servicios de EEUU, y las industrias de China (Maquinaria y Químicos), Singapur (Metales básicos) y sorprendentemente de Eslovenia (Papeles e impresiones), entre otros.
 
-```{r degree-uw, out.width='80%'}
-# grado entrada
-deg_in_uw = tabcen$degree %>% select(sector, d_in) %>% arrange(-d_in) %>% head(10)
-# grado salida
-deg_out_uw = tabcen$degree %>% select(sector, d_out) %>% arrange(-d_out) %>% head(10)
+El cálculo de la cercanía para cada nodo usando las distancias desde el resto de los nodos permite hallar sectores que se encuentran muy cerca de una gran cantidad de proveedores y consumen bienes y servicios de muchos de ellos. Por este motivo, no solo las demandas finales de países centrales tienen "cercanía de entrada" alta, sino también de países pequeños y dependientes de importaciones, como Malta, Brunei e Islandia (ver Cuadro \ref{tab:centrality}).
 
-list(deg_in_uw,deg_out_uw) %>%
-  knitr::kable(caption="10 principales sectores según grado de entrada y grado de salida (Grafo no pesado)",booktabs=T) 
-
-```
-
-[COSAS]
+En cuanto a la "cercanía de salida", es sorprendente la importancia de sectores industriales de Luxemburgo y Bulgaria (Plásticos y Productos metálicos, por ejemplo). No obstante, hay que destacar que estos estadísticos están sesgados a favor de países de Europa y Asía, ya que muchos de los países de América y África estána agrupados en la categoría de "Resto del Mundo" y no tienen nodos en la red.
 
 ```{r centrality, out.width='80%'}
 # betweenness
-betw = tabcen$others %>% select(sector, betw) %>% arrange(-betw) %>% head(10)
+betw = tabcen$others %>% select(sector, betw) %>% arrange(-betw) %>% head(10) %>% mutate(betw=round(betw,3))
 # closeness in
-c_in = tabcen$others %>% select(sector, close_in) %>% arrange(-close_in) %>% head(10)
+c_in = tabcen$others %>% select(sector, close_in) %>% arrange(-close_in) %>% head(10) %>% mutate(close_in=round(close_in,3))
 # closeness out
-c_out = tabcen$others %>% select(sector, close_out) %>% arrange(-close_out) %>% head(10)
+c_out = tabcen$others %>% select(sector, close_out) %>% arrange(-close_out) %>% head(10) %>% mutate(close_out=round(close_out,3))
 
 list(betw,c_in,c_out) %>%
-  knitr::kable(caption="10 principales sectores según betweenness y cercanía (de entrada y salida) (Grafo no pesado)")
-
+  knitr::kable(caption="10 principales sectores según betweenness y cercanía (de entrada y salida) normalizados (Grafo no pesado)")
 ```
-
-[COSAS]
 
 # Detección de comunidades
 
@@ -114,7 +140,7 @@ Esta técnica nos permite adicionalmente detectar sectores relativamente aislado
 
 Una vez identificadas las comunidades de sectores, se facilita el problema de hallar cadenas globales de valor significativas: en lugar de aplicar el algoritmo XXX sobre toda la red, lo hacemos sobre cada comunidad. 
 
-# Anexo
+# Anexo {#anexo}
 
 ```{r paises, out.width='80%', fig.show='hold', fig.cap="Países incluidos en ICIO (2015)"}
 knitr::include_graphics(c(

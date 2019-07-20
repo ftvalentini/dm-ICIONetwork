@@ -23,20 +23,20 @@ for (c in seq_along(cols)) {
 
 # create graphs ------------------------------------------------------------
 
+library(igraph)
 gs = list(log=mat, usd=mat_usd, int=mat_int) %>% 
   map(mat_to_graph)
 
 
 # centrality ------------------------------------------------------------------
 
-
 # DEGREE
 # a. ALL unweighted
 degree = tibble(
   sector = names(degree(gs$usd))
-  ,d_tot = degree(gs$usd, mode="total")
-  ,d_in = degree(gs$usd, mode="in")
-  ,d_out = degree(gs$usd, mode="out")
+  ,d_tot = degree(gs$usd, mode="total", normalized=T)
+  ,d_in = degree(gs$usd, mode="in", normalized=T)
+  ,d_out = degree(gs$usd, mode="out", normalized=T)
 )
 # b. ALL weighted
 degree_w = tibble(
@@ -63,9 +63,9 @@ degree_w_int = tibble(
 # BETWEENNESS Y CLOSENESS unweighted
 others = tibble(
   sector = V(gs$usd)$name
-  ,betw = betweenness(gs$usd, weights=NULL)
-  ,close_in = closeness(gs$usd, mode="in", weights=NULL)
-  ,close_out = closeness(gs$usd, mode="out", weights=NULL)
+  ,betw = betweenness(gs$usd, weights=NULL, normalized=T)
+  ,close_in = closeness(gs$usd, mode="in", weights=NULL, normalized=T)
+  ,close_out = closeness(gs$usd, mode="out", weights=NULL, normalized=T)
 )
 
 # save
@@ -74,7 +74,20 @@ centrality = list(degree, degree_w, degree_int, degree_w_int, others) %>%
 saveRDS(centrality, "output/centrality.rds")
 
 
-# plot --------------------------------------------------------------------
+
+# plot degree -------------------------------------------------------------
+
+
+dat_g = degree %>% gather(stat, value, -sector)
+g_deg = ggplot(g_dat, aes(x=value)) +
+  facet_wrap(vars(stat), ncol=3) +
+  geom_density(fill="red", alpha=0.2, col="black") +
+  labs(y=NULL, x=NULL)
+ggsave("output/plots/degree_distribution.png", width=8, height=3)
+
+
+
+# plot network ------------------------------------------------------------
 
 g_use = "log"
 paint = "continent"
