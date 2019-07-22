@@ -79,7 +79,7 @@ saveRDS(centrality, "output/centrality.rds")
 
 
 dat_g = degree %>% gather(stat, value, -sector)
-g_deg = ggplot(g_dat, aes(x=value)) +
+g_deg = ggplot(dat_g, aes(x=value)) +
   facet_wrap(vars(stat), ncol=3) +
   geom_density(fill="red", alpha=0.2, col="black") +
   labs(y=NULL, x=NULL)
