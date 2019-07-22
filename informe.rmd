@@ -132,13 +132,29 @@ list(betw,c_in,c_out) %>%
 
 # Detección de comunidades
 
-Para identificar clusters de sectores con vínculos comerciales intensos entre sí, y con poco comercio con otros sectores, usamos el algoritmo para detección de comunidades de XXX.
+Para identificar clusters de sectores con vínculos comerciales intensos entre sí, y con poco comercio con otros sectores, usamos el algoritmo para detección de comunidades Infomap, con su implementación del paquete "igraph".
+Aplicando esta técnica al grafo ponderado por peso de la transacción tanto sobre el total de exportaciones e importaciones respectivamente obtenemos 4 comunidades compuestas por sectores de mas de un país. Estas comunidades están basadas en países de gran poder económico como era de esperar. Ver Figura \ref{fig:comunidades} del [Anexo].
+A modo de resumen:
+* La primera involucra a muchos sectores de Estados Unidos para terminar alimentado la demanda final de este mismo país y comerciando con el sector de tecnología tanto de Mexico (principal vecino comercial) como de - llamativamente - Filipinas.
+* La segunda focaliza en muchos sectores de Alemania y concluye en la propia demanda alemana y en sectores de transporte automotor de vecinos como Suiza, Francia y Hungría.
+*  La tercera repite el patrón para Gran Bretaña, alimentandosu propia demanda y transaccionando con el sector de plásticos de Irlanda y telecomunicaciones de Luxemburgo.
+* La cuarta tiene su núcleo en muchos sectores de Francia (incluyendo la demanda final) pero además la relaciona con la minería belga y los productos madereros de Luxemburgo.
+
+Vemos que las comunidades identificadas se centran en cuatro potencias económicas globales y permiten detectar algunos sectores importantes de su matriz transaccional. A su vez vemos que más allá de la cercanía geográfica y el crecimiento de los intercambios comerciales todavía el comercio interno predomina en las potencias y los socios destacados son países de menor jerarquía. No hay una conexión de la misma envergadura entre estas potencias núcleo.
 
 Esta técnica nos permite adicionalmente detectar sectores relativamente aislados del resto y que no forman parte de ninguna comunidad – outliers – que son descartados para los análisis posteriores. Es a priori esperable que muchas comunidades estén conformadas por sectores de un solo país, en los casos en que estos vínculos sean significativamente más fuertes que los que se mantienen con sectores de otros países. Estas comunidades también son descartadas ya que representan “archipiélagos” de países aislados del resto del mundo. 
 
 # Detección de caminos pesados
 
-Una vez identificadas las comunidades de sectores, se facilita el problema de hallar cadenas globales de valor significativas: en lugar de aplicar el algoritmo XXX sobre toda la red, lo hacemos sobre cada comunidad. 
+Una vez identificadas las comunidades de sectores, se facilita el problema de hallar cadenas globales de valor significativas: en lugar de aplicar la función PathRanker del paquete "NetPathMiner" sobre toda la red, lo hacemos sobre cada comunidad. Este algoritmo busca los caminos más probables dado el peso de las aristas.  
+Dado que las comunidades no abarcan muchos países decidimos calcular caminos que pasen por la comunidad en todas sus aristas. Es decir que cada conexión tiene que tener al menos en uno de sus extremos un nodo de la comunidad en cuestión. De esta forma pueden encontrarse otros socios comerciales que no necesariamente forman parte estrictamente de la comunidad.
+
+Aplicamos el algoritmo a las distintas comunidades encontradas iterando sobre caminos de longitud mínima entre 5 y 10 pasos. Ver Figura \ref{fig:caminos} del [Anexo].
+
+Algunos caminos interesantes basados en cantidad de países afectados son:
+* El sector de la minería alemana proveyendo a la industria metalera local y a la maquinaria de transporte suya como hungara, francesa y del nodo resto del mundo, siendo un nicho exportador a recalcar.
+* En la misma sintonía vemos que Bélgica le provee materia prima minera a Francia para alimentar varios sectores de su industria pero a su vez al sector metalúrgico alemán y al resto del mundo.
+* Con e
 
 # Anexo {#anexo}
 
@@ -153,3 +169,11 @@ knitr::include_graphics(c(
   "resources/png/sectores.png"
 ))
 ```
+
+```{r comunidades}
+```
+
+```{r caminos}
+```
+
+
