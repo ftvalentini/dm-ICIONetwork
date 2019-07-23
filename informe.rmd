@@ -26,6 +26,8 @@ source("libraries.r")
 ```{r read-data}
 # tablas centralidad
 tabcen = readRDS("output/centrality.rds")
+# tabla paths w1 infomap
+w1_info2 = readRDS("output/w1_info2.rds")
 ```
 
 Uno de los rasgos salientes de la producción mundial de bienes y servicios en los últimos 50 años ha sido la deslocalización de las etapas de los procesos productivos en las llamadas *cadenas globales de valor*. En el presente trabajo usamos la información de comercio internacional intersectorial disponible en las Inter-Country Input-Output Matrices (ICIO) de la OCDE para identificar cadenas globales de valor. Para ello representamos la matriz del año 2015 como un grafo dirigido que usamos para identificar comunidades de comercio intenso, sobre las cuales aplicamos un algoritmo de detección de caminos pesados.
@@ -135,6 +137,7 @@ list(betw,c_in,c_out) %>%
 Para identificar clusters de sectores con vínculos comerciales intensos entre sí, y con poco comercio con otros sectores, usamos el algoritmo para detección de comunidades Infomap, con su implementación del paquete "igraph".
 Aplicando esta técnica al grafo ponderado por peso de la transacción tanto sobre el total de exportaciones e importaciones respectivamente obtenemos 4 comunidades compuestas por sectores de mas de un país. Estas comunidades están basadas en países de gran poder económico como era de esperar. Ver Figura \ref{fig:comunidades} del [Anexo].
 A modo de resumen:
+
 * La primera involucra a muchos sectores de Estados Unidos para terminar alimentado la demanda final de este mismo país y comerciando con el sector de tecnología tanto de Mexico (principal vecino comercial) como de - llamativamente - Filipinas.
 * La segunda focaliza en muchos sectores de Alemania y concluye en la propia demanda alemana y en sectores de transporte automotor de vecinos como Suiza, Francia y Hungría.
 *  La tercera repite el patrón para Gran Bretaña, alimentandosu propia demanda y transaccionando con el sector de plásticos de Irlanda y telecomunicaciones de Luxemburgo.
@@ -147,14 +150,24 @@ Esta técnica nos permite adicionalmente detectar sectores relativamente aislado
 # Detección de caminos pesados
 
 Una vez identificadas las comunidades de sectores, se facilita el problema de hallar cadenas globales de valor significativas: en lugar de aplicar la función PathRanker del paquete "NetPathMiner" sobre toda la red, lo hacemos sobre cada comunidad. Este algoritmo busca los caminos más probables dado el peso de las aristas.  
-Dado que las comunidades no abarcan muchos países decidimos calcular caminos que pasen por la comunidad en todas sus aristas. Es decir que cada conexión tiene que tener al menos en uno de sus extremos un nodo de la comunidad en cuestión. De esta forma pueden encontrarse otros socios comerciales que no necesariamente forman parte estrictamente de la comunidad.
+Dado que las comunidades no abarcan muchos países decidimos calcular caminos que pasen por la comunidad en todas sus aristas. Es decir que cada conexión tiene que tener al menos en uno de sus extremos un nodo de la comunidad en cuestión. De esta forma pueden encontrarse otros socios comerciales que no necesariamente forman parte estrictamente de la comunidad y nos restringimos a las comunidades que son núcleos comerciales globales.
 
-Aplicamos el algoritmo a las distintas comunidades encontradas iterando sobre caminos de longitud mínima entre 5 y 10 pasos. Ver Figura \ref{fig:caminos} del [Anexo].
+Aplicamos el algoritmo a las distintas comunidades encontradas iterando sobre caminos de longitud mínima entre 5 y 10 pasos. Posteriormente filtramos los caminos para quedarnos con aquellos que involucran 3 o más países y poder aproximarnos a posibles cadenas globales de valor.
+En el Cuadro \ref{tab:caminos} se puede ver una tabla resumen de estos caminos pesados.
+
+```{r caminos, out.width='80%'}
+library(kableExtra)
+knitr::kable(x = w1_info2, caption = "Resumen de caminos pesados para matriz ponderada por peso de exportaciones e importaciones",
+             format="latex", booktabs=TRUE) %>%
+kable_styling(latex_options="scale_down")
+```
+
 
 Algunos caminos interesantes basados en cantidad de países afectados son:
-* El sector de la minería alemana proveyendo a la industria metalera local y a la maquinaria de transporte suya como hungara, francesa y del nodo resto del mundo, siendo un nicho exportador a recalcar.
+
+* El sector de la minería alemana proveyendo a la industria metalera local y a la maquinaria de transporte tant suya como hungara, francesa y del nodo resto del mundo, siendo un nicho exportador a recalcar.
 * En la misma sintonía vemos que Bélgica le provee materia prima minera a Francia para alimentar varios sectores de su industria pero a su vez al sector metalúrgico alemán y al resto del mundo.
-* Con e
+* Con este mismo patrón de Francia siendo alimentado por Bélgica vemos varios caminos que finalizan en demanda final de países varios o sectores particulares de países no vecinos como la construcción de Argentina.
 
 # Anexo {#anexo}
 
@@ -173,7 +186,5 @@ knitr::include_graphics(c(
 ```{r comunidades}
 ```
 
-```{r caminos}
-```
 
 

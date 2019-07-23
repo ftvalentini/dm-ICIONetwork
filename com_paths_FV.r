@@ -59,3 +59,37 @@ com_paths = dat_out %>%
 
 saveRDS(com_paths, "data/working/com_paths.rds")
 
+
+# table with paths W1 and Infomap ----------------------------------------
+
+w1_info <- com_paths %>%
+  dplyr::filter(matriz_name == "mat_w1") 
+
+clean_path <- vector(mode ="list")
+
+for (i in 1:length(w1_info$paths)){
+  clean_path[[i]] = unlist(w1_info$paths[[i]])
+  q_country = map(clean_path,.f = ~length(unique(str_sub(.,1,3))))
+  
+}
+
+path_string <- tibble(path_string = character())
+
+for (i in 1:length(clean_path)){
+  path_string[i,1] =   as.character(paste(clean_path[[i]], collapse = " "))
+}
+
+
+w1_info2 <- cbind.data.frame(w1_info, q_country = unlist(q_country)) %>%
+  mutate(id = row_number()) %>%
+  cbind.data.frame(., path_string) %>% 
+  arrange(com_id, minsize, desc(q_country)) %>%
+  group_by(com_id, minsize) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(id, path_string) %>%
+  distinct(path_string, .keep_all = TRUE)
+
+# save table to output -------------------------------------------------
+
+saveRDS(w1_info2, "output/w1_info2.rds")
