@@ -19,6 +19,7 @@ paq_proj <- c(
   "igraph"
   ,"data.table"
   ,"RColorBrewer"
+  ,"BiocManager"
 )
 
 # no tocar ----------------------------------------------------------------
