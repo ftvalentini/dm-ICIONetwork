@@ -13,7 +13,7 @@ com_paths = read_rds("data/working/com_paths.rds")
 
 paths_to_show = list()
 library(igraph)
-dev.off()
+#dev.off()
 # para cada matriz:
 for (m_name in c("mat_w1","mat_w2")) {
   # graph
