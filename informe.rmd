@@ -220,11 +220,14 @@ tab_a4 %>%
   kable_styling(latex_options="scale_down")
 ```
 
-[DESCRIPCION PANTRISTE DE LAS CGV EN A1 Y A4]
+La Figura \ref{fig:plot-a1} muestra como la minería canadiense alimenta a su vecino comercial Estados Unidos, que la transforma para su utilización en diversos sectores propios (fuerte comercio interno) y a su vez para generar exportaciones tanto a la demanda final australiana como al sector maderero argentino.
 
+La Figura \ref{fig:plot-a4} muestra una tendencia similar pero centrado en Europa. Los sectores de servicios para la minería principalmente de Francia pero también de Suiza y Bélgica dan soporte a la minería de Rusia, Noruega, Francia, Estados Unidos y Nueva Zelanda, quienes a su vez comercian con sectores industriales de ese mismo grupo y España. En última instancia estos caminos abastecen a la demanda final de Francia, España y Noruega.
+Esta comunidad muestra una dinámica más heterogenea y compleja ya que involucra mayor cantidad de países.
+ 
 ## CGVs por dependencia
 
-Para cada comunidad del grafo B, que usa pesos que captan lazos comerciales de dependencia económica, seguimos el mismo procedimiento que para el grafo A. Los resultados se observan en las Figuras \ref{fig:plot-b1}, \ref{fig:plot-b2}, \ref{fig:plot-b3} y \ref{fig:plot-b4}, y en los Cuadros \ref{tab:tab-b1}, \ref{fig:tab-b2}, \ref{fig:tab-b3} y \ref{fig:tab-b4}.
+Para cada comunidad del grafo B, que usa pesos que captan lazos comerciales de dependencia económica, seguimos el mismo procedimiento que para el grafo A. Los resultados se observan en las Figuras \ref{fig:plot-b1}, \ref{fig:plot-b2}, \ref{fig:plot-b3} y \ref{fig:plot-b4}, y en los Cuadros \ref{tab:tab-b1}, \ref{tab:tab-b2}, \ref{tab:tab-b3} y \ref{tab:tab-b4}.
 
 ```{r plot-b1, out.width='60%', fig.cap="Subgrafo de CGVs por valor (comunidad B1)"}
 knitr::include_graphics(c(
@@ -278,11 +281,13 @@ tab_a1 %>%
   kable_styling(latex_options="scale_down")
 ```
 
-El sector de la minería alemana proveyendo a la industria metalera local y a la maquinaria de transporte tant suya como hungara, francesa y del nodo resto del mundo, siendo un nicho exportador a recalcar.
+En la figura \ref{fig:plot-b1} vemos que los servicios para la minería de Filipinas sumado a los propios servicios estadounidenses proporcionan herramientas para el desarrollo de la industria minera de Estados Unidos. Esta alimenta varios sectores internos con énfasis en la industria pesada como la vehicular tanto de Canadá como propia y la de metales y plásticos internas también. Todas estas industrias en última instancia abastecen al sector de la construcción argentino.
 
-En la misma sintonía vemos que Bélgica le provee materia prima minera a Francia para alimentar varios sectores de su industria pero a su vez al sector metalúrgico alemán y al resto del mundo.
+En la figura \ref{fig:plot-b2} nuevamente el sector minero es el disparador, en este caso el de Alemania y en menor medida el de Rusia y Nueva Zelanda que abastecen a la industria alemana, quien comercia a su vez proveyendo productos a la demanda final de Estados Unidos, Hungría y Australia.
 
-Con este mismo patrón de Francia siendo alimentado por Bélgica vemos varios caminos que finalizan en demanda final de países varios o sectores particulares de países no vecinos como la construcción de Argentina.
+La figura \ref{fig:plot-b3} se centra en la minería de Gran Bretaña que alimenta a toda su industria local y en menor medida al sector de telecomunicaciones de Luxemburgo y al de venta minorista masiva. Nuevamente Argentina es importador de estas industrias, en este caso para su demanda final, aunque es un vínculo menos importante que los previamente mencionados.
+
+En la misma sintonía vemos en la figura \ref{fig:plot-b4} que Bélgica le provee materia prima minera a Francia para alimentar varios sectores de su industria que comercian muy fuertemente entre sí y abarcando a muchos sectores de rubros distintos. Finalmente y nuevamente con un impacto mucho menor, la industria francesa abastece al sector de la construcción argentina.
 
 # Anexo {#anexo}
 
