@@ -41,8 +41,9 @@ heavy_paths = function(matriz, community, minsize){
   
   # sectores de la comunidad
   nodos = community %>% unlist(use.names=F) %>% sort()
-  primarios = nodos
-  # alternativa: primarios = nodos[str_detect(nodos, '_01T03|_05T06|_07T08|_09')]
+  # primarios = nodos
+  # alternativa: 
+  primarios = nodos[str_detect(nodos, '_01T03|_05T06|_07T08|_09')]
   
   # NOTA: NO SE USA GRAFO CON SOLO LOS SECTORES DE LA COMUNIDAD
   # SE USAN TODOS LOS EDGES DONDE ESTAN POR LO MENOS UNO DE ESOS SECTORES

@@ -14,6 +14,7 @@ paq_desiempre <- c(
   ,"tidyr"
   ,"bookdown"
   ,"kableExtra"
+  ,"pander"
 )
 paq_proj <- c(
   "igraph"
