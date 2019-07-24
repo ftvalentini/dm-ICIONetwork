@@ -26,8 +26,16 @@ source("libraries.r")
 ```{r read-data}
 # tablas centralidad
 tabcen = readRDS("output/centrality.rds")
-# tabla paths w1 infomap
-w1_info2 = readRDS("output/w1_info2.rds")
+
+# tibble comunidades
+communities = readRDS("data/working/communities.rds")
+
+# tibble paths con sus comunidades
+com_paths = readRDS("data/working/com_paths.rds")
+
+# tablas de todos los paths para mostrar
+paths_tab = readRDS("output/paths_to_show.rds")
+
 ```
 
 Uno de los rasgos salientes de la producción mundial de bienes y servicios en los últimos 50 años ha sido la deslocalización de las etapas de los procesos productivos en las llamadas *cadenas globales de valor*. En el presente trabajo usamos la información de comercio internacional intersectorial disponible en las Inter-Country Input-Output Matrices (ICIO) de la OCDE para identificar cadenas globales de valor. Para ello representamos la matriz del año 2015 como un grafo dirigido que usamos para identificar comunidades de comercio intenso, sobre las cuales aplicamos un algoritmo de detección de caminos pesados.
@@ -118,7 +126,7 @@ Para detectar sectores que son intermediarios significativos del comercio mundia
 
 El cálculo de la cercanía para cada nodo usando las distancias desde el resto de los nodos permite hallar sectores que se encuentran muy cerca de una gran cantidad de proveedores y consumen bienes y servicios de muchos de ellos. Por este motivo, no solo las demandas finales de países centrales tienen "cercanía de entrada" alta, sino también de países pequeños y dependientes de importaciones, como Malta, Brunei e Islandia (ver Cuadro \ref{tab:centrality}).
 
-En cuanto a la "cercanía de salida", es sorprendente la importancia de sectores industriales de Luxemburgo y Bulgaria (Plásticos y Productos metálicos, por ejemplo). No obstante, hay que destacar que estos estadísticos están sesgados a favor de países de Europa y Asía, ya que muchos de los países de América y África estána agrupados en la categoría de "Resto del Mundo" y no tienen nodos en la red.
+En cuanto a la "cercanía de salida", es sorprendente la importancia de sectores industriales de Luxemburgo y Bulgaria (Plásticos y Productos metálicos, por ejemplo). No obstante, hay que destacar que estos estadísticos están sesgados a favor de países de Europa y Asia, ya que muchos de los países de América y África estána agrupados en la categoría de "Resto del Mundo" y no tienen nodos en la red.
 
 ```{r centrality, out.width='80%'}
 # betweenness
@@ -134,40 +142,147 @@ list(betw,c_in,c_out) %>%
 
 # Detección de comunidades
 
-Para identificar clusters de sectores con vínculos comerciales intensos entre sí, y con poco comercio con otros sectores, usamos el algoritmo para detección de comunidades Infomap, con su implementación del paquete "igraph".
-Aplicando esta técnica al grafo ponderado por peso de la transacción tanto sobre el total de exportaciones e importaciones respectivamente obtenemos 4 comunidades compuestas por sectores de mas de un país. Estas comunidades están basadas en países de gran poder económico como era de esperar. Ver Figura \ref{fig:comunidades} del [Anexo].
-A modo de resumen:
+Para identificar clusters de sectores con vínculos comerciales intensos entre sí, y con poco comercio con otros sectores, usamos el algoritmo para detección de comunidades Infomap con su implementación del paquete *igraph* para R.
 
-* La primera involucra a muchos sectores de Estados Unidos para terminar alimentado la demanda final de este mismo país y comerciando con el sector de tecnología tanto de Mexico (principal vecino comercial) como de - llamativamente - Filipinas.
-* La segunda focaliza en muchos sectores de Alemania y concluye en la propia demanda alemana y en sectores de transporte automotor de vecinos como Suiza, Francia y Hungría.
-*  La tercera repite el patrón para Gran Bretaña, alimentandosu propia demanda y transaccionando con el sector de plásticos de Irlanda y telecomunicaciones de Luxemburgo.
-* La cuarta tiene su núcleo en muchos sectores de Francia (incluyendo la demanda final) pero además la relaciona con la minería belga y los productos madereros de Luxemburgo.
+El ejercicio fue realizado sobre dos versiones del grafo construido a partir de la matriz preprocesada:
 
-Vemos que las comunidades identificadas se centran en cuatro potencias económicas globales y permiten detectar algunos sectores importantes de su matriz transaccional. A su vez vemos que más allá de la cercanía geográfica y el crecimiento de los intercambios comerciales todavía el comercio interno predomina en las potencias y los socios destacados son países de menor jerarquía. No hay una conexión de la misma envergadura entre estas potencias núcleo.
+- **Versión A**. Grafo en el que los pesos de las aristas representan el logaritmo del valor monetario de la compraventa.   
 
-Esta técnica nos permite adicionalmente detectar sectores relativamente aislados del resto y que no forman parte de ninguna comunidad – outliers – que son descartados para los análisis posteriores. Es a priori esperable que muchas comunidades estén conformadas por sectores de un solo país, en los casos en que estos vínculos sean significativamente más fuertes que los que se mantienen con sectores de otros países. Estas comunidades también son descartadas ya que representan “archipiélagos” de países aislados del resto del mundo. 
+- **Versión B**. Grafo en el que los pesos de las aristas representan el promedio entre (1) el peso de la transacción sobre el total de ventas para el sector vendedor, y (2) el peso de la transacción sobre el total de compras para el sector comprador. Por ejemplo, si una arista determinada constituye la única venta para el sector vendedor y la única compra del comprador, el peso será igual a 1. 
 
-# Detección de caminos pesados
+Esta técnica nos permite adicionalmente detectar sectores relativamente aislados del resto y que no forman parte de ninguna comunidad (*outliers*): estos son descartados para los análisis posteriores. Es a priori esperable que muchas comunidades estén conformadas por sectores de un solo país, en los casos en que estos vínculos sean significativamente más fuertes que los que se mantienen con sectores de otros países. Estas comunidades también son descartadas ya que representan “archipiélagos” de países aislados del resto del mundo. En síntesis, de todas las comunidades identificadas en cada versión del grafo, solo conservamos aquellas conformadas por sectores de más de 2 países.
 
-Una vez identificadas las comunidades de sectores, se facilita el problema de hallar cadenas globales de valor significativas: en lugar de aplicar la función PathRanker del paquete "NetPathMiner" sobre toda la red, lo hacemos sobre cada comunidad. Este algoritmo busca los caminos más probables dado el peso de las aristas.  
-Dado que las comunidades no abarcan muchos países decidimos calcular caminos que pasen por la comunidad en todas sus aristas. Es decir que cada conexión tiene que tener al menos en uno de sus extremos un nodo de la comunidad en cuestión. De esta forma pueden encontrarse otros socios comerciales que no necesariamente forman parte estrictamente de la comunidad y nos restringimos a las comunidades que son núcleos comerciales globales.
+Siguiendo estas reglas, en el grafo A obtuvimos las siguientes 4 comunidades: 
+<!-- (ver detalle en el [Anexo]) -->
 
-Aplicamos el algoritmo a las distintas comunidades encontradas iterando sobre caminos de longitud mínima entre 5 y 10 pasos. Posteriormente filtramos los caminos para quedarnos con aquellos que involucran 3 o más países y poder aproximarnos a posibles cadenas globales de valor.
-En el Cuadro \ref{tab:caminos} se puede ver una tabla resumen de estos caminos pesados.
+* **A1**. Conformada por la mayor parte de los sectores de EEUU y Canadá, sumados al sector de Productos metálicos de Cambodia.
 
-```{r caminos, out.width='80%'}
-library(kableExtra)
-knitr::kable(x = w1_info2, caption = "Resumen de caminos pesados para matriz ponderada por peso de exportaciones e importaciones",
-             format="latex", booktabs=TRUE) %>%
-kable_styling(latex_options="scale_down")
+* **A2**. Consiste en muchos sectores de Alemania, los sectores de Maquinaria y Equipo eléctrico de Kazakhstan y Servicios de apoyo para la minería de Irlanda.
+
+* **A3**. Conformada por los sectores de Francia, acompañados por el sector de Minería de Bélgica, y Madera y productos de madera de Luxemburgo.
+
+* **A4**. Conformada por los servicios de apoyo para la minería de Bélgica, República Checa, España, Francia y Luxemburgo, el sector minero de Holanda y la demanda final de Francia.
+
+A excepción de la comunidad A4, las tres restantes corresponden a economías centrales (EEUU+Canadá, Rusia, Francia), acompañadas por unos pocos sectores de otros países que importan y exportan productos intermedios de estas economías por un valor significativo. 
+
+Por su parte, en el grafo B obtuvimos las siguientes 4 comunidades:
+<!-- (ver detalle en Figura \ref{fig:comunidades} del [Anexo]): -->
+
+* **B1**. Involucra a muchos sectores de Estados Unidos, la demanda final de este mismo país y los sectores de tecnología tanto de México (principal vecino comercial) como de -- llamativamente -- Filipinas.
+
+* **B2**. Consiste en muchos sectores de Alemania, la demanda final alemana y en sectores de transporte automotor de vecinos comerciales como Suiza, Francia y Hungría.
+
+* **B3**. Conformada en gran parte por sectores de Gran Bretaña, acompañados por el sector de plásticos de Irlanda y telecomunicaciones de Luxemburgo. Coincide con la comunidad *A3*.
+
+* **B4**. Tiene su núcleo en muchos sectores de Francia (incluyendo la demanda final) pero además incluye el sector de minería belga y los productos madereros de Luxemburgo.
+
+En síntesis, vemos que las comunidades identificadas en el grafo B se centran en cuatro potencias económicas globales y permiten detectar algunos sectores de países menores que dependen de sus compras o ventas. No se detectan conexiones de la misma envergadura entre estas potencias núcleo u otras -- esto es razonable ya que no se espera observar vínculos comerciales de los que dos países centrales dependan fuertemente.
+
+# Detección de CGV
+
+Una vez identificadas las comunidades de sectores, se facilita el problema de hallar cadenas globales de valor significativas: en lugar de aplicar el algoritmo de detección de caminos pesados sobre toda la red A o B, lo hacemos partiendo de los nodos de cada comunidad.
+
+En particular, usamos la función PathRanker del paquete *NetPathMiner* para R, que identifica secuencias de nodos sin loops que maximicen la suma de los pesos, para una longitud de secuencia dada.  
+
+Dado que las comunidades no abarcan muchos países decidimos identificar caminos no necesariamente conformados únicamente por nodos de la comunidad, sino que tan solo pasen por la comunidad en todas sus aristas. Es otras palabras, cada conexión tiene que tener al menos en uno de sus extremos un nodo de la comunidad en cuestión. De esta forma pueden encontrarse otros socios comerciales que no necesariamente forman parte estrictamente de la comunidad, sin dejar de tener a a los clusters comerciales globales ya detectados.
+
+Aplicamos el algoritmo a las comunidades encontradas en la sección anterior, iterando sobre caminos de longitud mínima entre 5 y 10 pasos y con la condición de que inicien en sectores primarios. Posteriormente filtramos los caminos para quedarnos con aquellos que involucran 3 o más países y poder aproximarnos a posibles cadenas globales de valor.
+
+## CGVs por valor
+
+A continuación analizamos los caminos encontrados para las comunidades del grafo A, cuyos pesos representan el valor monetario de los vínculos comerciales.
+
+En las Figuras \ref{fig:plot-a1} y \ref{fig:plot-a4} se representan los subgrafos que surgen de incluir los sectores de los caminos hallados según la técnica descrita en la sección anterior, con todos sus aristas. En los Cuadros \ref{tab:tab-a1} y \ref{tab:tab-a4} mostramos una CGV identificada para cada longitud. En las comunidades A2 y A3 no se detectaron CGVs siguiendo esta metodología.
+
+```{r plot-a1, out.width='60%', fig.cap="Subgrafo de CGVs por valor (comunidad A1)"}
+knitr::include_graphics(c(
+  "output/plots/mat_w2_5.png"
+))
 ```
 
+```{r plot-a4, out.width='60%', fig.cap="Subgrafo de CGVs por valor (comunidad A4)"}
+knitr::include_graphics(c(
+  "output/plots/mat_w2_8.png"
+))
+```
 
-Algunos caminos interesantes basados en cantidad de países afectados son:
+```{r tab-a1, out.width='80%'}
+tab_a1 = paths_tab$mat_w2$`5`
+tab_a1 %>%
+  knitr::kable(caption="CGVs identificadas en la comunidad A1") %>% 
+  kable_styling(latex_options="scale_down")
+```
 
-* El sector de la minería alemana proveyendo a la industria metalera local y a la maquinaria de transporte tant suya como hungara, francesa y del nodo resto del mundo, siendo un nicho exportador a recalcar.
-* En la misma sintonía vemos que Bélgica le provee materia prima minera a Francia para alimentar varios sectores de su industria pero a su vez al sector metalúrgico alemán y al resto del mundo.
-* Con este mismo patrón de Francia siendo alimentado por Bélgica vemos varios caminos que finalizan en demanda final de países varios o sectores particulares de países no vecinos como la construcción de Argentina.
+```{r tab-a4, out.width='80%'}
+tab_a4 = paths_tab$mat_w2$`8`
+tab_a4 %>%
+  knitr::kable(caption="CGVs identificadas en la comunidad A4") %>% 
+  kable_styling(latex_options="scale_down")
+```
+
+[DESCRIPCION PANTRISTE DE LAS CGV EN A1 Y A4]
+
+## CGVs por dependencia
+
+Para cada comunidad del grafo B, que usa pesos que captan lazos comerciales de dependencia económica, seguimos el mismo procedimiento que para el grafo A. Los resultados se observan en las Figuras \ref{fig:plot-b1}, \ref{fig:plot-b2}, \ref{fig:plot-b3} y \ref{fig:plot-b4}, y en los Cuadros \ref{tab:tab-b1}, \ref{fig:tab-b2}, \ref{fig:tab-b3} y \ref{fig:tab-b4}.
+
+```{r plot-b1, out.width='60%', fig.cap="Subgrafo de CGVs por valor (comunidad B1)"}
+knitr::include_graphics(c(
+  "output/plots/mat_w1_1.png"
+))
+```
+
+```{r plot-b2, out.width='60%', fig.cap="Subgrafo de CGVs por valor (comunidad B2)"}
+knitr::include_graphics(c(
+  "output/plots/mat_w1_2.png"
+))
+```
+
+```{r plot-b3, out.width='60%', fig.cap="Subgrafo de CGVs por valor (comunidad B3)"}
+knitr::include_graphics(c(
+  "output/plots/mat_w1_3.png"
+))
+```
+
+```{r plot-b4, out.width='60%', fig.cap="Subgrafo de CGVs por valor (comunidad B4)"}
+knitr::include_graphics(c(
+  "output/plots/mat_w1_4.png"
+))
+```
+
+```{r tab-b1, out.width='80%'}
+tab_a1 = paths_tab$mat_w1$`1`
+tab_a1 %>%
+  knitr::kable(caption="CGVs identificadas en la comunidad B1") %>% 
+  kable_styling(latex_options="scale_down")
+```
+
+```{r tab-b2, out.width='80%'}
+tab_a1 = paths_tab$mat_w1$`2`
+tab_a1 %>%
+  knitr::kable(caption="CGVs identificadas en la comunidad B2") %>% 
+  kable_styling(latex_options="scale_down")
+```
+
+```{r tab-b3, out.width='80%'}
+tab_a1 = paths_tab$mat_w1$`3`
+tab_a1 %>%
+  knitr::kable(caption="CGVs identificadas en la comunidad B3") %>% 
+  kable_styling(latex_options="scale_down")
+```
+
+```{r tab-b4, out.width='80%'}
+tab_a1 = paths_tab$mat_w1$`4`
+tab_a1 %>%
+  knitr::kable(caption="CGVs identificadas en la comunidad B4") %>% 
+  kable_styling(latex_options="scale_down")
+```
+
+El sector de la minería alemana proveyendo a la industria metalera local y a la maquinaria de transporte tant suya como hungara, francesa y del nodo resto del mundo, siendo un nicho exportador a recalcar.
+
+En la misma sintonía vemos que Bélgica le provee materia prima minera a Francia para alimentar varios sectores de su industria pero a su vez al sector metalúrgico alemán y al resto del mundo.
+
+Con este mismo patrón de Francia siendo alimentado por Bélgica vemos varios caminos que finalizan en demanda final de países varios o sectores particulares de países no vecinos como la construcción de Argentina.
 
 # Anexo {#anexo}
 
@@ -183,8 +298,14 @@ knitr::include_graphics(c(
 ))
 ```
 
-```{r comunidades}
-```
+<!-- ```{r comunidades, fig.show='hold', fig.cap="Comunidades identificadas por Infomap"} -->
+<!-- coms_a = communities %>% dplyr::filter(matriz_name=="mat_w1") %>%  -->
+<!--   pull(coms) %>% unique() %>% setNames("A"%+%seq(1,length(.))) -->
+<!-- coms_b = communities %>% dplyr::filter(matriz_name=="mat_w2") %>%  -->
+<!--   pull(coms) %>% unique() %>% setNames("B"%+%seq(1,length(.))) -->
+<!-- cat("Comunidades identificadas por Infomap") -->
+<!-- pander::pander(c(coms_a, coms_b)) -->
+<!-- ``` -->
 
 
 

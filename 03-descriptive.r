@@ -86,50 +86,50 @@ g_deg = ggplot(dat_g, aes(x=value)) +
 ggsave("output/plots/degree_distribution.png", width=8, height=3)
 
 
-
-# plot network ------------------------------------------------------------
-
-g_use = "log"
-paint = "continent"
-
-# append region-continent attributes to each vertex
-atr = read_csv("resources/countries.csv") %>% 
-  select(id, region, continent) %>% 
-  right_join(
-    tibble(name = V(gs[[g_use]])$name %>% str_sub(1,3))
-    ,by = c("id"="name"))
-gs[[g_use]] = gs[[g_use]] %>% set_vertex_attr(paint, value=atr[[paint]])
-
-# vertex color based on region/continent
-pal = RColorBrewer::brewer.pal(length(unique(atr[[paint]])),"Set3")
-# pal = rainbow(length(unique(atr[[paint]])))
-v_color = pal[as.factor(atr[[paint]])]
-
-# edge opacity based on weight
-edge_scale = colorRampPalette(c("gray95","gray10"))
-edge_order = floor(maxmin(E(gs[[g_use]])$weight)*100) %>% replace(.==0, 1)
-e_color = edge_scale(100)[edge_order]
-
-# layout
-set.seed(semilla)
-lay = layout_with_kk(gs[[g_use]])
-# lay = layout_in_circle(gs[[g_use]])
+# NOT USED
+# # plot network ------------------------------------------------------------
+# 
+# g_use = "log"
+# paint = "continent"
+# 
+# # append region-continent attributes to each vertex
+# atr = read_csv("resources/countries.csv") %>% 
+#   select(id, region, continent) %>% 
+#   right_join(
+#     tibble(name = V(gs[[g_use]])$name %>% str_sub(1,3))
+#     ,by = c("id"="name"))
+# gs[[g_use]] = gs[[g_use]] %>% set_vertex_attr(paint, value=atr[[paint]])
+# 
+# # vertex color based on region/continent
+# pal = RColorBrewer::brewer.pal(length(unique(atr[[paint]])),"Set3")
+# # pal = rainbow(length(unique(atr[[paint]])))
+# v_color = pal[as.factor(atr[[paint]])]
+# 
+# # edge opacity based on weight
+# edge_scale = colorRampPalette(c("gray95","gray10"))
+# edge_order = floor(maxmin(E(gs[[g_use]])$weight)*100) %>% replace(.==0, 1)
+# e_color = edge_scale(100)[edge_order]
+# 
+# # layout
 # set.seed(semilla)
-# lay = layout_with_fr(g_usd)
-
-# make plot
-png("output/plots/prueba12.png", width=1600, height=1200)
-# par(mai=c(0,0,0,0)) # no borders
-plot(gs[[g_use]],
-     layout=lay
-     ,edge.color=e_color
-     ,vertex.color=v_color
-     ,edge.arrow.size=.1
-     ,vertex.frame.color=NA
-     ,vertex.size=1
-     ,vertex.label=""
-)
-legend(x=-1.5, y=-0.7, levels(as.factor(atr[[paint]]))
-       , pch=21
-       , pt.bg=pal, pt.cex=6, cex=2, bty="n", ncol=1)
-dev.off()
+# lay = layout_with_kk(gs[[g_use]])
+# # lay = layout_in_circle(gs[[g_use]])
+# # set.seed(semilla)
+# # lay = layout_with_fr(g_usd)
+# 
+# # make plot
+# png("output/plots/prueba12.png", width=1600, height=1200)
+# # par(mai=c(0,0,0,0)) # no borders
+# plot(gs[[g_use]],
+#      layout=lay
+#      ,edge.color=e_color
+#      ,vertex.color=v_color
+#      ,edge.arrow.size=.1
+#      ,vertex.frame.color=NA
+#      ,vertex.size=1
+#      ,vertex.label=""
+# )
+# legend(x=-1.5, y=-0.7, levels(as.factor(atr[[paint]]))
+#        , pch=21
+#        , pt.bg=pal, pt.cex=6, cex=2, bty="n", ncol=1)
+# dev.off()
